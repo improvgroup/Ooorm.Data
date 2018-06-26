@@ -5,31 +5,28 @@ using System.Reflection;
 
 namespace Ooorm.Data.Reflection
 {
-    public class ColumnInfo
+    public class Property
     {
-        protected readonly PropertyInfo property;
-
-        public readonly Type ModelType;
-        public readonly Type ClrType;
-        public readonly string ColumnName;
+        public readonly PropertyInfo Info;
+        public readonly Type PropertyType;
         public readonly string PropertyName;
+        public readonly Type ModelType;
 
-        public ColumnInfo(PropertyInfo property)
+        public Property(PropertyInfo property)
         {
-            this.property = property;
+            Info = property;
+            PropertyType = property.PropertyType;
+            PropertyName = property.Name;
+            ModelType = property.DeclaringType;
             setter = (Action<object, object>)property.SetMethod.CreateDelegate(typeof(Action<object, object>));
             getter = (Func<object, object>)property.GetMethod.CreateDelegate(typeof(Func<object, object>));
-            ModelType = property.DeclaringType;
-            ClrType = property.PropertyType;
-            ColumnName = property.GetCustomAttribute<ColumnAttribute>().Value;
-            PropertyName = property.Name;
         }
 
         private readonly Action<object, object> setter;
         public virtual void SetOn(object model, object value)
         {
             Debug.Assert(model.GetType().IsEquivalentTo(ModelType), $"Type of {nameof(model)} passed to {nameof(SetOn)} must match value of {nameof(ModelType)}.");
-            Debug.Assert(value.GetType().IsEquivalentTo(ClrType), $"Type of {nameof(value)} passed to {nameof(SetOn)} must match value of {nameof(ClrType)}.");
+            Debug.Assert(value.GetType().IsEquivalentTo(PropertyType), $"Type of {nameof(value)} passed to {nameof(SetOn)} must match value of {nameof(PropertyType)}.");
             setter(model, value);
         }
 
@@ -41,9 +38,19 @@ namespace Ooorm.Data.Reflection
         }
     }
 
-    public class ColumnInfo<TModel> : ColumnInfo
+    public class Column : Property
     {
-        public ColumnInfo(PropertyInfo property) : base(property)
+        public readonly string ColumnName;
+
+        public Column(PropertyInfo property) : base(property)
+        {
+            ColumnName = property.GetCustomAttribute<ColumnAttribute>().Value;
+        }
+    }
+
+    public class Property<TModel> : Property
+    {
+        public Property(PropertyInfo property) : base(property)
         {
             setter = (Action<TModel, object>)property.SetMethod.CreateDelegate(typeof(Action<TModel, object>));
             getter = (Func<TModel, object>)property.GetMethod.CreateDelegate(typeof(Func<TModel, object>));
@@ -52,7 +59,7 @@ namespace Ooorm.Data.Reflection
         private readonly Action<TModel, object> setter;
         public void SetOn(TModel model, object value)
         {
-            Debug.Assert(value.GetType().IsEquivalentTo(ClrType), $"Type of {nameof(value)} passed to {nameof(SetOn)} must match value of {nameof(ClrType)}.");
+            Debug.Assert(value.GetType().IsEquivalentTo(PropertyType), $"Type of {nameof(value)} passed to {nameof(SetOn)} must match value of {nameof(PropertyType)}.");
             setter(model, value);
         }
 
@@ -60,9 +67,19 @@ namespace Ooorm.Data.Reflection
         public object GetFrom(TModel model) => getter(model);
     }
 
-    public class ColumnInfo<TModel, TValue> : ColumnInfo<TModel>
+    public class Column<TModel> : Property<TModel>
     {
-        public ColumnInfo(PropertyInfo property) : base(property)
+        public readonly string ColumnName;
+
+        public Column(PropertyInfo property) : base(property)
+        {
+            ColumnName = property.GetCustomAttribute<ColumnAttribute>().Value;
+        }
+    }
+
+    public class Property<TModel, TValue> : Property<TModel>
+    {
+        public Property(PropertyInfo property) : base(property)
         {
             setter = (Action<TModel, TValue>)property.SetMethod.CreateDelegate(typeof(Action<TModel, TValue>));
             getter = (Func<TModel, TValue>)property.GetMethod.CreateDelegate(typeof(Func<TModel, TValue>));
@@ -74,5 +91,15 @@ namespace Ooorm.Data.Reflection
 
         private readonly Func<TModel, TValue> getter;
         public new TValue GetFrom(TModel model) => getter(model);
+    }
+
+    public class Column<TModel, TValue> : Property<TModel>
+    {
+        public readonly string ColumnName;
+
+        public Column(PropertyInfo property) : base(property)
+        {
+            ColumnName = property.GetCustomAttribute<ColumnAttribute>().Value;
+        }
     }
 }

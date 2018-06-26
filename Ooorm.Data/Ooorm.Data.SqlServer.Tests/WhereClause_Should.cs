@@ -78,7 +78,9 @@ namespace Ooorm.Data.SqlServer.Tests
         [Fact]
         public void SupportNestedExpressions()
         {
+            string clause = provider.WhereClause(m => (m.Key == null || m.Value > 2) && true);
 
+            clause.Should().Be($"WHERE ((({KEY} IS NULL) OR ({Value} > 2)) AND 1=1)");
         }
     }
 }

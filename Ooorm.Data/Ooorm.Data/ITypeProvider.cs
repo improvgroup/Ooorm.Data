@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Data;
 
 namespace Ooorm.Data
 {
     public interface ITypeProvider
     {
-        string DbType<TClrType>();
-        string DbType(Type clrType);
-        string ClrType(string dbType);
+        DbType DbType<TClrType>();
+        DbType DbType(Type clrType);
+        Type ClrType(DbType dbType);
 
         TClrType ToClrValue<TClrType>(object dbValue);
         object ToDbValue<TClrType>(TClrType clrValue);
