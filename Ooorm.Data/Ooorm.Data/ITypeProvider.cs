@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ooorm.Data.Reflection;
+using System;
 using System.Data;
 
 namespace Ooorm.Data
@@ -8,8 +9,6 @@ namespace Ooorm.Data
         DbType DbType<TClrType>();
         DbType DbType(Type clrType);
         Type ClrType(DbType dbType);
-
-        TClrType ToClrValue<TClrType>(object dbValue);
-        object ToDbValue<TClrType>(TClrType clrValue);
+        string DbTypeString(Column column);
     }
 }

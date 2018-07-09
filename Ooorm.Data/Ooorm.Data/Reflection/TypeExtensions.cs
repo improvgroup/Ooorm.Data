@@ -42,14 +42,16 @@ namespace Ooorm.Data.Reflection
             return attr != null;
         }
 
-        public static IEnumerable<Column<T>> GetColumns<T>(this T value)
+        public static IEnumerable<Column<T>> GetColumns<T>(this T value, bool exceptId = false)
             => typeof(T).GetProperties(PROPS)
                     .Where(p => p.HasAttribute<ColumnAttribute>())
+                    .Where(p => !(exceptId && p.HasAttribute<IdAttribute>()))
                     .Select(p => new Column<T>(p));
 
-        public static IEnumerable<Column> GetColumns(this Type type)
+        public static IEnumerable<Column> GetColumns(this Type type, bool exceptId = false)
             => type.GetProperties(PROPS)
                     .Where(p => p.HasAttribute<ColumnAttribute>())
+                    .Where(p => !(exceptId && p.HasAttribute<IdAttribute>()))
                     .Select(p => new Column(p));
 
         public static IEnumerable<Property<T>> GetDataProperties<T>(this T value)

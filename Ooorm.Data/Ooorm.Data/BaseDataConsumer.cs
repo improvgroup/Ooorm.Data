@@ -7,64 +7,67 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Data;
 
 namespace Ooorm.Data
 {
-    public static class DbReaderExtensions
+    public abstract class BaseDataConsumer<TDataReader> : IDataConsumer<TDataReader> where TDataReader : IDataReader
     {
-        public static IEnumerable<string> Fields(this System.Data.Common.DbDataReader reader)
+        protected abstract bool TryGetStream(TDataReader reader, int ordinal, out Stream stream);
+        
+        public virtual IEnumerable<string> Fields(TDataReader reader)
         {
             for (int i = 0; i < reader.FieldCount; i++)
                 yield return reader.GetName(i);
         }
 
-        public static object ReadColumn(this System.Data.Common.DbDataReader reader, Column column, int index, ITypeProvider types)
+        public virtual object ReadColumn(TDataReader reader, Column column, int index, ITypeProvider types)
         {
             switch (types.DbType(column.PropertyType))
             {
-                case System.Data.DbType.Boolean:
+                case DbType.Boolean:
                     return reader.GetBoolean(index);
-                case System.Data.DbType.Byte:
+                case DbType.Byte:
                     return reader.GetByte(index);
-                case System.Data.DbType.SByte:
+                case DbType.SByte:
                     return (sbyte)reader.GetByte(index);
-                case System.Data.DbType.Int16:
+                case DbType.Int16:
                     return reader.GetInt16(index);
-                case System.Data.DbType.UInt16:
+                case DbType.UInt16:
                     return (ushort)reader.GetInt16(index);
-                case System.Data.DbType.Int32:
+                case DbType.Int32:
                     return reader.GetInt32(index);
-                case System.Data.DbType.UInt32:
+                case DbType.UInt32:
                     return (uint)reader.GetInt32(index);
-                case System.Data.DbType.Int64:
+                case DbType.Int64:
                     return reader.GetInt64(index);
-                case System.Data.DbType.UInt64:
+                case DbType.UInt64:
                     return (ulong)reader.GetInt64(index);
-                case System.Data.DbType.Single:
+                case DbType.Single:
                     return reader.GetFloat(index);
-                case System.Data.DbType.Double:
+                case DbType.Double:
                     return reader.GetDouble(index);
-                case System.Data.DbType.Decimal:                    
-                case System.Data.DbType.Currency:
+                case DbType.Decimal:                    
+                case DbType.Currency:
                     return reader.GetDecimal(index);
-                case System.Data.DbType.AnsiString:                    
-                case System.Data.DbType.AnsiStringFixedLength:                    
-                case System.Data.DbType.String:                    
-                case System.Data.DbType.StringFixedLength:
+                case DbType.AnsiString:                    
+                case DbType.AnsiStringFixedLength:                    
+                case DbType.String:                    
+                case DbType.StringFixedLength:
                     return ReadStringField(reader, column, index);
-                case System.Data.DbType.Guid:
+                case DbType.Guid:
                     return reader.GetGuid(index);
-                case System.Data.DbType.DateTime:
-                case System.Data.DbType.DateTime2:
+                case DbType.DateTime:
+                case DbType.DateTime2:
                     return reader.IsDBNull(index) ? default : reader.GetDateTime(index);                
-                case System.Data.DbType.Binary:                                                            
+                case DbType.Binary:                                                            
                     return ReadBinaryField(reader, column, index);
                 default:
                     return null;
             }
         }
 
-        private static object ReadStringField(this System.Data.Common.DbDataReader reader, Column column, int index)
+        protected virtual object ReadStringField(TDataReader reader, Column column, int index)
         {
             var data = reader.GetString(index);
             if (column.PropertyType == typeof(string))
@@ -85,7 +88,7 @@ namespace Ooorm.Data
             throw new NotSupportedException($"Can not convert DbString type to {column.PropertyType} for column {column.ColumnName} -> {column.PropertyName}");
         }
 
-        private static object ReadBinaryField(this System.Data.Common.DbDataReader reader, Column column, int index)
+        protected virtual object ReadBinaryField(TDataReader reader, Column column, int index)
         {
             if (column.PropertyType == typeof(byte[]))
             {
@@ -93,9 +96,9 @@ namespace Ooorm.Data
                 reader.GetBytes(index, 0, buffer, 0, buffer.Length);
                 return buffer;
             }
-            else if (column.Info.HasAttribute<AsBinaryAttribute>())
-                return new BinaryFormatter().Deserialize(reader.GetStream(index));       
+            else if (column.Info.HasAttribute<AsBinaryAttribute>() && TryGetStream(reader, index, out Stream stream))
+                return new BinaryFormatter().Deserialize(stream);
             throw new NotSupportedException($"Can not convert DbString type to {column.PropertyType} for column {column.ColumnName} -> {column.PropertyName}");
-        }
+        }        
     }
 }

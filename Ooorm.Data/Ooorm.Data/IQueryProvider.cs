@@ -7,13 +7,14 @@ namespace Ooorm.Data.QueryProviders
     {
         string WhereClause<TParam>(Expression<Func<T, TParam, bool>> predicate);
         string WhereClause(Expression<Func<T, bool>> predicate);
-        string InsertSql<TParam>(TParam parameters);
-        string UpdateSql<TParam>(int id, TParam parameters);
-        string DeleteSql<TParam>(int id);
+        string CreateSql();
+        string UpdateSql<TParam>();
+        string DeleteSqlById();
         string DeleteSql(Expression<Func<T, bool>> predicate);
-        string DeleteSql<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam parameters);
-        string ReadSql(int id);
+        string DeleteSql<TParam>(Expression<Func<T, TParam, bool>> predicate);
+        string ReadSql();
+        string ReadSqlById();
         string ReadSql(Expression<Func<T, bool>> predicate);
-        string ReadSql<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam parameters);
+        string ReadSql<TParam>(Expression<Func<T, TParam, bool>> predicate);
     }
 }
