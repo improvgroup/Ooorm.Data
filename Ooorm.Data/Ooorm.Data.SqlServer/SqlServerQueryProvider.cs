@@ -38,6 +38,9 @@ namespace Ooorm.Data.SqlServer
         public string ReadSql()
             => READ_PREFIX.Append(";").ToString();
 
+        public string ReadById()
+            => READ_PREFIX.Append("where Id = @Id").ToString();
+
         public string ReadSql(Expression<Func<T, bool>> predicate)
             => READ_PREFIX.Append(WhereClause(predicate)).Append(";").ToString();
 
