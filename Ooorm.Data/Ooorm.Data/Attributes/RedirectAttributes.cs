@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ooorm.Data.Attributes
+namespace Ooorm.Data
 {
     public class DbInfoAttribute : Attribute
     {

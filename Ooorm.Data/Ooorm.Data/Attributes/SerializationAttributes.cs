@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Ooorm.Data.Attributes
+namespace Ooorm.Data
 {
     public class AsBinaryAttribute : Attribute { }
     public class AsXmlAttribute : Attribute { }
