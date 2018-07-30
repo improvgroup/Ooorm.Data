@@ -33,9 +33,17 @@ namespace Ooorm.Data
                 return;
             var paramType = parameter.GetType();
             if (!propertyCache.ContainsKey(paramType))
-                propertyCache[paramType] = paramType.GetDataProperties().ToList();                            
+                propertyCache[paramType] = paramType.GetDataProperties().ToList();
             foreach (var value in propertyCache[paramType].Where(p => sql.Contains($"@{p.PropertyName}")))
-                AddKeyValuePair(command, value.PropertyName, value.GetFrom(parameter) ?? DBNull.Value);
+                AddKeyValuePair(command, value.PropertyName, types.ToDbValue(value.GetFrom(parameter)) ?? DBNull.Value);
+        }
+
+        public void AddParameters(TDbCommand command, string sql, (string name, object value) parameter)
+        {
+            if (types.IsDbValueType(parameter.value.GetType()))
+                AddKeyValuePair(command, parameter.name, types.ToDbValue(parameter.value) ?? DBNull.Value);
+            else
+                AddParameters(command, sql, parameter.value);
         }
 
         public virtual int Execute(TDbConnection connection, string sql, object parameter)
@@ -52,40 +60,42 @@ namespace Ooorm.Data
 
         public static void CheckColumnCache<T>()
         {
-            if (!columnCache.ContainsKey(typeof(T)))            
-                columnCache[typeof(T)] = typeof(T).GetColumns().ToDictionary(c => c.ColumnName, c => c);            
+            if (!columnCache.ContainsKey(typeof(T)))
+                columnCache[typeof(T)] = typeof(T).GetColumns().ToDictionary(c => c.ColumnName, c => c);
         }
 
         public virtual IEnumerable<T> Read<T>(TDbConnection connection, string sql, object parameter)
         {
             using (var command = GetCommand(sql, connection))
-            {                
-                CheckColumnCache<T>();                
+            {
+                CheckColumnCache<T>();
                 AddParameters(command, sql, parameter);
-                return ExecuteReader<T>(command);                     
+                return ExecuteReader<T>(command);
             }
         }
 
         protected virtual IEnumerable<T> ExecuteReader<T>(TDbCommand command)
-        {            
+        {
             using (var reader = (TDbReader)command.ExecuteReader())
             {
                 return ParseReader<T>(reader);
             }
         }
 
-        protected virtual IEnumerable<T> ParseReader<T>(TDbReader reader)
+        protected virtual List<T> ParseReader<T>(TDbReader reader)
         {
+            var results = new List<T>();
             while (reader.Read())
             {
-                var row = default(T);
+                var row = typeof(T).IsValueType ? default : Activator.CreateInstance<T>();
                 for (int ordinal = 0; ordinal < reader.FieldCount; ordinal++)
                 {
                     var column = columnCache[typeof(T)][reader.GetName(ordinal)];
-                    column.SetOn(row, consumer.ReadColumn(reader, column, ordinal, types));
+                    column.SetOn(row, types.FromDbValue(consumer.ReadColumn(reader, column, ordinal, types), column.PropertyType));
                 }
-                yield return row;
+                results.Add(row);
             }
+            return results;
         }
     }
 }

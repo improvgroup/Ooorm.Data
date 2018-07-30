@@ -35,11 +35,13 @@ namespace Ooorm.Data.SqlServer
                 }
             }
         }
-            
+
         public abstract void WithConnection(Action<SqlConnection> action);
         public abstract Task WithConnectionAsync(Action<SqlConnection> action);
+        public abstract Task WithConnectionAsync(Func<SqlConnection, Task> action);
+
         public abstract T FromConnection<T>(Func<SqlConnection, T> action);
-        public abstract Task<T> FromConnectionAsync<T>(Func<SqlConnection, T> action);
+        public abstract Task<T> FromConnectionAsync<T>(Func<SqlConnection, Task<T>> action);
 
         internal Task<Task<IEnumerable<IDbItem>>> FromConnectionAsync(Func<SqlConnection, Task<object>> p)
         {
@@ -50,12 +52,12 @@ namespace Ooorm.Data.SqlServer
 
         /// <summary>
         /// Returns a connection source that creates a new connection upon every request
-        /// </summary>        
+        /// </summary>
         public static UniqueConnectionSource CreateUniqueSource(string connectionString) => new UniqueConnectionSource(connectionString);
 
         /// <summary>
         /// Returns a connection source that keeps 1 connection open and uses it for every request
-        /// </summary>        
+        /// </summary>
         public static SharedConnectionSource CreateSharedSource(string connectionString) => new SharedConnectionSource(connectionString);
     }
 

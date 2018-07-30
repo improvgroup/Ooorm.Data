@@ -79,6 +79,8 @@ namespace Ooorm.Data
             { typeof(ushort?),        System.Data.DbType.UInt16         },
             { typeof(int),            System.Data.DbType.Int32          },
             { typeof(int?),           System.Data.DbType.Int32          },
+            { typeof(DbVal<>),        System.Data.DbType.Int32          },
+            { typeof(DbRef<>),        System.Data.DbType.Int32          },
             { typeof(uint),           System.Data.DbType.UInt32         },
             { typeof(uint?),          System.Data.DbType.UInt32         },
             { typeof(long),           System.Data.DbType.Int64          },
@@ -97,13 +99,23 @@ namespace Ooorm.Data
             { typeof(DateTime),       System.Data.DbType.DateTime       },
             { typeof(DateTimeOffset), System.Data.DbType.DateTimeOffset },
             { typeof(TimeSpan),       System.Data.DbType.Time           },
-            { typeof(byte[]),         System.Data.DbType.Binary         },            
+            { typeof(byte[]),         System.Data.DbType.Binary         },
             { typeof(XmlDocument),    System.Data.DbType.Xml            },
         };
 
         public DbType DbType<TClrType>() => DbType(typeof(TClrType));
-        
-        public DbType DbType(Type clrType) => _typeMap[clrType];                
+
+        public DbType DbType(Type clrType)
+        {
+            if (clrType.IsGenericType && (clrType == typeof(DbRef<>).MakeGenericType(clrType.GenericTypeArguments) || clrType == typeof(DbVal<>).MakeGenericType(clrType.GenericTypeArguments)))
+                return System.Data.DbType.Int32;
+            else
+                return _typeMap[clrType];
+        }
+
+        public bool IsDbValueType(Type clrType)
+            => (clrType.IsGenericType && (clrType == typeof(DbRef<>).MakeGenericType(clrType.GenericTypeArguments) || clrType == typeof(DbVal<>).MakeGenericType(clrType.GenericTypeArguments)))
+                    || _typeMap.ContainsKey(clrType);
 
         public string DbTypeString(Column column)
         {
@@ -111,26 +123,26 @@ namespace Ooorm.Data
             {
                 case System.Data.DbType.Boolean:
                     return "bit";
-                case System.Data.DbType.Byte:                    
+                case System.Data.DbType.Byte:
                 case System.Data.DbType.SByte:
                     return "tinyint";
-                case System.Data.DbType.Int16:                    
+                case System.Data.DbType.Int16:
                 case System.Data.DbType.UInt16:
                     return "smallint";
-                case System.Data.DbType.Int32:                    
+                case System.Data.DbType.Int32:
                 case System.Data.DbType.UInt32:
                     return "int";
-                case System.Data.DbType.Int64:                    
+                case System.Data.DbType.Int64:
                 case System.Data.DbType.UInt64:
                     return "bigint";
                 case System.Data.DbType.Single:
                     return "real";
                 case System.Data.DbType.Double:
                     return "float";
-                case System.Data.DbType.Decimal:                    
+                case System.Data.DbType.Decimal:
                 case System.Data.DbType.Currency:
                     return "decimal";
-                case System.Data.DbType.AnsiString:                    
+                case System.Data.DbType.AnsiString:
                 case System.Data.DbType.AnsiStringFixedLength:
                     if (column.Info.TryGetAttribute(out FixedLengthAttribute fixedLengthAnsi))
                         return $"char({fixedLengthAnsi.Length})";
@@ -138,7 +150,7 @@ namespace Ooorm.Data
                         return $"varchar({maxLengthAnsi.Length})";
                     else
                         return "varchar(max)";
-                case System.Data.DbType.String:                    
+                case System.Data.DbType.String:
                 case System.Data.DbType.StringFixedLength:
                     if (column.Info.TryGetAttribute(out FixedLengthAttribute fixedLengthString))
                         return $"nchar({fixedLengthString.Length})";
@@ -169,7 +181,24 @@ namespace Ooorm.Data
                     return null;
             }
         }
+
+        public object ToDbValue(object value)
+        {
+            if (value is IdConvertable<int> valId)
+                return valId.ToId();
+            else if (value is IdConvertable<int?> refId)
+                return refId.ToId();
+            return value;
+        }
+
+        public object FromDbValue(object value, Type type)
+        {
+            if (type.IsGenericType && type == typeof(DbVal<>).MakeGenericType(type.GenericTypeArguments))
+                return Activator.CreateInstance(typeof(DbVal<>).MakeGenericType(type.GenericTypeArguments), value);
+            else if (type.IsGenericType && type == typeof(DbRef<>).MakeGenericType(type.GenericTypeArguments))
+                return Activator.CreateInstance(typeof(DbRef<>).MakeGenericType(type.GenericTypeArguments), value);
+            return value;
+        }
     }
 }
 
-                

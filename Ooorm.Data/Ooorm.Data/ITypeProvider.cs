@@ -10,5 +10,8 @@ namespace Ooorm.Data
         DbType DbType(Type clrType);
         Type ClrType(DbType dbType);
         string DbTypeString(Column column);
+        object ToDbValue(object value);
+        object FromDbValue(object value, Type type);
+        bool IsDbValueType(Type clrType);
     }
 }

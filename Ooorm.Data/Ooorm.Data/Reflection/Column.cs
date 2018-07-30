@@ -18,8 +18,10 @@ namespace Ooorm.Data.Reflection
             PropertyType = property.PropertyType;
             PropertyName = property.Name;
             ModelType = property.DeclaringType;
-            setter = (Action<object, object>)property.SetMethod.CreateDelegate(typeof(Action<object, object>));
-            getter = (Func<object, object>)property.GetMethod.CreateDelegate(typeof(Func<object, object>));
+            setter = (m, value) => property.SetMethod.Invoke(m, new object[] { value });
+            //setter = (Action<object, object>)property.SetMethod.CreateDelegate(typeof(Action<object, object>));
+            getter = (m) => property.GetMethod.Invoke(m, null);
+            //getter = (Func<object, object>)property.GetMethod.CreateDelegate(typeof(Func<object, object>));
         }
 
         private readonly Action<object, object> setter;

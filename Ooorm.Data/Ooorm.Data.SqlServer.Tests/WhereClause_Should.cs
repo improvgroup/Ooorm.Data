@@ -56,7 +56,7 @@ namespace Ooorm.Data.SqlServer.Tests
         {
             string clause = provider.WhereClause<DbModel>((m, p) => m.Key == p.Key);
 
-            clause.Should().Be($"WHERE ({KEY} == @{nameof(DbModel.Key)})");
+            clause.Should().Be($"WHERE ({KEY} = @{nameof(DbModel.Key)})");
         }
 
         [Fact]

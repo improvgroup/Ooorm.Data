@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Ooorm.Data.QueryProviders
 {
     public class SqliteQueryProvider<T> : IQueryProvider<T> where T : IDbItem
     {
-        public string DeleteSql<TParam>(int id)
+        public string CreateTableSql()
         {
             throw new NotImplementedException();
         }
@@ -17,17 +15,22 @@ namespace Ooorm.Data.QueryProviders
             throw new NotImplementedException();
         }
 
-        public string DeleteSql<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam parameters)
+        public string DeleteSql<TParam>(Expression<Func<T, TParam, bool>> predicate)
         {
             throw new NotImplementedException();
         }
 
-        public string InsertSql<TParam>(TParam parameters)
+        public string DeleteSqlById()
         {
             throw new NotImplementedException();
         }
 
-        public string ReadSql(int id)
+        public string DropTableSql()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string ReadSql()
         {
             throw new NotImplementedException();
         }
@@ -37,12 +40,17 @@ namespace Ooorm.Data.QueryProviders
             throw new NotImplementedException();
         }
 
-        public string ReadSql<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam parameters)
+        public string ReadSql<TParam>(Expression<Func<T, TParam, bool>> predicate)
         {
             throw new NotImplementedException();
         }
 
-        public string UpdateSql<TParam>(int id, TParam parameters)
+        public string ReadSqlById()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string UpdateSql<TParam>()
         {
             throw new NotImplementedException();
         }
@@ -53,6 +61,11 @@ namespace Ooorm.Data.QueryProviders
         }
 
         public string WhereClause(Expression<Func<T, bool>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string WriteSql()
         {
             throw new NotImplementedException();
         }

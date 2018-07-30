@@ -10,7 +10,7 @@ namespace Ooorm.Data.ConnectionManagement
         Task WithConnectionAsync(Action<TDbConnection> action);
 
         T FromConnection<T>(Func<TDbConnection, T> action);
-        Task<T> FromConnectionAsync<T>(Func<TDbConnection, T> action);
+        Task<T> FromConnectionAsync<T>(Func<TDbConnection, Task<T>> action);
 
         int OpenConnections { get; }
         bool CanConnect { get; }

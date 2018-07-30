@@ -7,8 +7,8 @@ namespace Ooorm.Data.SqlServer
     public class UniqueConnectionSource : SqlServerConnectionSource
     {
         public UniqueConnectionSource(string connectionString) : base(connectionString) { }
-        
-        public override void Dispose() { }        
+
+        public override void Dispose() { }
 
         public override void WithConnection(Action<SqlConnection> action)
         {
@@ -34,6 +34,18 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
+        public override async Task WithConnectionAsync(Func<SqlConnection, Task> action)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                OpenConnections++;
+                await action(connection);
+                connection.Close();
+                OpenConnections--;
+            }
+        }
+
         public override T FromConnection<T>(Func<SqlConnection, T> action)
         {
             using (var connection = new SqlConnection(connectionString))
@@ -47,13 +59,13 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
-        public override async Task<T> FromConnectionAsync<T>(Func<SqlConnection, T> action)
+        public override async Task<T> FromConnectionAsync<T>(Func<SqlConnection, Task<T>> action)
         {
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 OpenConnections++;
-                var value = action(connection);
+                var value = await action(connection);
                 connection.Close();
                 OpenConnections--;
                 return value;

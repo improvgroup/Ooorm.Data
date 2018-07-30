@@ -7,7 +7,7 @@ namespace Ooorm.Data.QueryProviders
     {
         string WhereClause<TParam>(Expression<Func<T, TParam, bool>> predicate);
         string WhereClause(Expression<Func<T, bool>> predicate);
-        string CreateSql();
+        string WriteSql();
         string UpdateSql<TParam>();
         string DeleteSqlById();
         string DeleteSql(Expression<Func<T, bool>> predicate);
@@ -16,5 +16,7 @@ namespace Ooorm.Data.QueryProviders
         string ReadSqlById();
         string ReadSql(Expression<Func<T, bool>> predicate);
         string ReadSql<TParam>(Expression<Func<T, TParam, bool>> predicate);
+        string CreateTableSql();
+        string DropTableSql();
     }
 }

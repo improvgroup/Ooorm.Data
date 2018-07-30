@@ -49,10 +49,13 @@ namespace Ooorm.Data.Reflection
                     .Select(p => new Column<T>(p));
 
         public static IEnumerable<Column> GetColumns(this Type type, bool exceptId = false)
-            => type.GetProperties(PROPS)
-                    .Where(p => p.HasAttribute<ColumnAttribute>())
-                    .Where(p => !(exceptId && p.HasAttribute<IdAttribute>()))
-                    .Select(p => new Column(p));
+        {
+            var props = type.GetProperties(PROPS).ToArray();
+            var fields = props.Where(p => p.HasAttribute<ColumnAttribute>()).ToArray();
+            var notId = fields.Where(p => !(exceptId && p.HasAttribute<IdAttribute>())).ToArray();
+            var columns = notId.Select(p => new Column(p)).ToArray();
+            return columns;
+        }
 
         public static IEnumerable<Property<T>> GetDataProperties<T>(this T value)
             => typeof(T).GetProperties(PROPS)

@@ -8,12 +8,12 @@ namespace Ooorm.Data
     public static class ExpressionExtensions
     {
         /// <summary>
-        /// Default implementation of a predicate to sql transpiler 
+        /// Default implementation of a predicate to sql transpiler
         /// </summary>
         public static string ToSql<T>(this Expression<Func<T, bool>> predicate) => Where(predicate.Body);
 
         /// <summary>
-        /// Default implementation of a predicate (with query parameter) to sql transpiler 
+        /// Default implementation of a predicate (with query parameter) to sql transpiler
         /// </summary>
         public static string ToSql<T, TParam>(this Expression<Func<T, TParam, bool>> predicate) => Where(predicate.Body, predicate.Parameters.Last().Name);
 
@@ -40,9 +40,11 @@ namespace Ooorm.Data
                 case ExpressionType.OrElse:
                     return "OR";
                 case ExpressionType.Equal:
-                    return "==";
+                    return "=";
                 case ExpressionType.NotEqual:
                     return "!=";
+                case ExpressionType.Convert:
+                    return "";
                 default:
                     throw new NotSupportedException($"Expression type {type} is not supported");
             }
@@ -73,9 +75,15 @@ namespace Ooorm.Data
             }
             else if (exp is UnaryExpression unexp)
             {
-                builder.Append($"{Operand(unexp.NodeType)} (");
-                BuildWhere(unexp.Operand, builder, paramName);
-                builder.Append(")");
+                string operand = Operand(unexp.NodeType);
+                if (string.IsNullOrEmpty(operand))
+                    BuildWhere(unexp.Operand, builder, paramName);
+                else
+                {
+                    builder.Append($"{operand} (");
+                    BuildWhere(unexp.Operand, builder, paramName);
+                    builder.Append(")");
+                }
             }
             else if (exp is BinaryExpression binexp)
             {
@@ -119,6 +127,10 @@ namespace Ooorm.Data
                     builder.Append($"@{member.Member.Name}");
                 else
                     builder.Append($"[{member.Member.Name}]");
+            }
+            else if (exp is ParameterExpression parameter)
+            {
+                builder.Append($"@{parameter.Name}");
             }
         }
     }

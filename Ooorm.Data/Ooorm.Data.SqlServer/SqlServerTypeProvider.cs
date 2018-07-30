@@ -8,32 +8,23 @@ namespace Ooorm.Data.SqlServer
     /// Provides type translation maps for Microsoft Sql Server
     /// </summary>
     internal class SqlServerTypeProvider : ITypeProvider
-    {        
+    {
         private readonly DefaultTypeProvider defaults;
 
-        public SqlServerTypeProvider()
-        {
-            defaults = new DefaultTypeProvider();
-        }
+        public SqlServerTypeProvider() => defaults = new DefaultTypeProvider();
 
-        public Type ClrType(DbType dbType)
-        {
-            return defaults.ClrType(dbType);
-        }
+        public Type ClrType(DbType dbType) => defaults.ClrType(dbType);
 
-        public DbType DbType<TClrType>()
-        {
-            return defaults.DbType<TClrType>();
-        }
+        public DbType DbType<TClrType>() => defaults.DbType<TClrType>();
 
-        public DbType DbType(Type clrType)
-        {
-            return defaults.DbType(clrType);
-        }
+        public DbType DbType(Type clrType) => defaults.DbType(clrType);
 
-        public string DbTypeString(Column column)
-        {
-            return defaults.DbTypeString(column);
-        }
+        public string DbTypeString(Column column) => defaults.DbTypeString(column);
+
+        public object ToDbValue(object value) => defaults.ToDbValue(value);
+
+        public object FromDbValue(object value, Type type) => defaults.FromDbValue(value, type);
+
+        public bool IsDbValueType(Type clrType) => defaults.IsDbValueType(clrType);
     }
 }

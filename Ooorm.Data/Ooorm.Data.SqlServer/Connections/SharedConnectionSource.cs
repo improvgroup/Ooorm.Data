@@ -21,9 +21,9 @@ namespace Ooorm.Data.SqlServer
 
         public override void Dispose()
         {
-            Connection.Result.Dispose();
+            Connection.Result.Close();
             OpenConnections = 0;
-        }        
+        }
 
         public override void WithConnection(Action<SqlConnection> action)
         {
@@ -35,14 +35,19 @@ namespace Ooorm.Data.SqlServer
             action(await Connection);
         }
 
+        public override async Task WithConnectionAsync(Func<SqlConnection, Task> action)
+        {
+            await action(await Connection);
+        }
+
         public override T FromConnection<T>(Func<SqlConnection, T> action)
         {
             return action(Connection.Result);
         }
 
-        public override async Task<T> FromConnectionAsync<T>(Func<SqlConnection, T> action)
+        public override async Task<T> FromConnectionAsync<T>(Func<SqlConnection, Task<T>> action)
         {
-            return action(await Connection);
+            return await action(await Connection);
         }
     }
 
