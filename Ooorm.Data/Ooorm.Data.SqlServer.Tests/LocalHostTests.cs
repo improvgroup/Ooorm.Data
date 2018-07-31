@@ -14,32 +14,21 @@ namespace Ooorm.Data.SqlServer.Tests
 
         public class Doodad : IDbItem
         {
-            [Id]
-            [Column(nameof(ID))]
             public int ID { get; set; }
-            [Column(nameof(Name))]
             public string Name { get; set; }
-            [Column(nameof(PrimaryWidgetId))]
             public DbRef<Widget> PrimaryWidgetId { get; set; }
         }
 
         public class Widget : IDbItem
         {
-            [Id]
-            [Column(nameof(ID))]
             public int ID { get; set; }
-            [Column(nameof(Value))]
             public int Value { get; set; }
         }
 
         public class WidgetDoodad : IDbItem
         {
-            [Id]
-            [Column(nameof(ID))]
             public int ID { get; set; }
-            [Column(nameof(WidgetId))]
             public DbVal<Widget> WidgetId { get; set; }
-            [Column(nameof(DoodadId))]
             public DbVal<Doodad> DoodadId { get; set; }
         }
 

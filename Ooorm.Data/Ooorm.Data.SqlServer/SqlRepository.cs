@@ -12,7 +12,7 @@ namespace Ooorm.Data.SqlServer
     public class SqlRepository<T> : ICrudRepository<T> where T : IDbItem
     {
         protected readonly SqlServerConnectionSource ConnectionSource;
-        protected readonly SqlDao dao = new SqlDao();
+        private readonly SqlDao dao = new SqlDao();
         private readonly SqlServerQueryProvider<T> queries = new SqlServerQueryProvider<T>();
 
         public SqlRepository(SqlServerConnectionSource connection) => ConnectionSource = connection;

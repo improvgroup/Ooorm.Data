@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Xml;
-using Ooorm.Data.Attributes;
 using Ooorm.Data.Reflection;
 
 namespace Ooorm.Data

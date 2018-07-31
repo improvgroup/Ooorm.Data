@@ -1,5 +1,4 @@
-﻿using Ooorm.Data.Attributes;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -46,7 +45,10 @@ namespace Ooorm.Data.Reflection
 
         public Column(PropertyInfo property) : base(property)
         {
-            ColumnName = property.GetCustomAttribute<ColumnAttribute>().Value;
+            if (property.TryGetAttribute(out ColumnAttribute column))
+                ColumnName = column.Value;
+            else
+                ColumnName = property.Name;
         }
     }
 
@@ -75,7 +77,10 @@ namespace Ooorm.Data.Reflection
 
         public Column(PropertyInfo property) : base(property)
         {
-            ColumnName = property.GetCustomAttribute<ColumnAttribute>().Value;
+            if (property.TryGetAttribute(out ColumnAttribute column))
+                ColumnName = column.Value;
+            else
+                ColumnName = property.Name;
         }
     }
 
@@ -101,7 +106,10 @@ namespace Ooorm.Data.Reflection
 
         public Column(PropertyInfo property) : base(property)
         {
-            ColumnName = property.GetCustomAttribute<ColumnAttribute>().Value;
+            if (property.TryGetAttribute(out ColumnAttribute column))
+                ColumnName = column.Value;
+            else
+                ColumnName = property.Name;
         }
     }
 }

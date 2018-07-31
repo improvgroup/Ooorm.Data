@@ -1,5 +1,4 @@
-﻿using Ooorm.Data.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -44,15 +43,15 @@ namespace Ooorm.Data.Reflection
 
         public static IEnumerable<Column<T>> GetColumns<T>(this T value, bool exceptId = false)
             => typeof(T).GetProperties(PROPS)
-                    .Where(p => p.HasAttribute<ColumnAttribute>())
-                    .Where(p => !(exceptId && p.HasAttribute<IdAttribute>()))
+                    .Where(p => !p.HasAttribute<DbIgnoreAttribute>())
+                    .Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem.ID))) )
                     .Select(p => new Column<T>(p));
 
         public static IEnumerable<Column> GetColumns(this Type type, bool exceptId = false)
         {
             var props = type.GetProperties(PROPS).ToArray();
-            var fields = props.Where(p => p.HasAttribute<ColumnAttribute>()).ToArray();
-            var notId = fields.Where(p => !(exceptId && p.HasAttribute<IdAttribute>())).ToArray();
+            var fields = props.Where(p => !p.HasAttribute<DbIgnoreAttribute>()).ToArray();
+            var notId = fields.Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem.ID))) ).ToArray();
             var columns = notId.Select(p => new Column(p)).ToArray();
             return columns;
         }

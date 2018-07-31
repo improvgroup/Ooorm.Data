@@ -17,4 +17,8 @@ namespace Ooorm.Data
     {
         public ColumnAttribute(string column) : base(column) { }
     }
+
+    public class DbIgnoreAttribute : Attribute
+    {
+    }
 }

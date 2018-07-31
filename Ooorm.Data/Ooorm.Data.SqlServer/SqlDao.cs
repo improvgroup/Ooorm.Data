@@ -10,7 +10,7 @@ namespace Ooorm.Data.SqlServer
     /// <summary>
     /// Data Access Object for Sql Server connections
     /// </summary>
-    public class SqlDao : BaseDao<SqlConnection, SqlCommand, SqlDataReader>
+    internal class SqlDao : BaseDao<SqlConnection, SqlCommand, SqlDataReader>
     {
         public SqlDao() : base(new SqlDataConsumer(), new DefaultTypeProvider()) { }
 

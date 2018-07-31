@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Ooorm.Data.Attributes;
 using Ooorm.Data.Reflection;
 using System;
 using System.Collections.Generic;
@@ -14,7 +13,7 @@ namespace Ooorm.Data
     public abstract class BaseDataConsumer<TDataReader> : IDataConsumer<TDataReader> where TDataReader : IDataReader
     {
         protected abstract bool TryGetStream(TDataReader reader, int ordinal, out Stream stream);
-        
+
         public virtual IEnumerable<string> Fields(TDataReader reader)
         {
             for (int i = 0; i < reader.FieldCount; i++)
@@ -47,20 +46,20 @@ namespace Ooorm.Data
                     return reader.GetFloat(index);
                 case DbType.Double:
                     return reader.GetDouble(index);
-                case DbType.Decimal:                    
+                case DbType.Decimal:
                 case DbType.Currency:
                     return reader.GetDecimal(index);
-                case DbType.AnsiString:                    
-                case DbType.AnsiStringFixedLength:                    
-                case DbType.String:                    
+                case DbType.AnsiString:
+                case DbType.AnsiStringFixedLength:
+                case DbType.String:
                 case DbType.StringFixedLength:
                     return ReadStringField(reader, column, index);
                 case DbType.Guid:
                     return reader.GetGuid(index);
                 case DbType.DateTime:
                 case DbType.DateTime2:
-                    return reader.IsDBNull(index) ? default : reader.GetDateTime(index);                
-                case DbType.Binary:                                                            
+                    return reader.IsDBNull(index) ? default : reader.GetDateTime(index);
+                case DbType.Binary:
                     return ReadBinaryField(reader, column, index);
                 default:
                     return null;
@@ -82,7 +81,7 @@ namespace Ooorm.Data
             }
             else if (column.Info.HasAttribute<AsJsonAttribute>())
                 return JsonConvert.DeserializeObject(data, column.PropertyType);
-            else if (column.Info.HasAttribute<AsXmlAttribute>())                            
+            else if (column.Info.HasAttribute<AsXmlAttribute>())
                 using (TextReader text = new StringReader(data))
                     return new XmlSerializer(column.PropertyType).Deserialize(text);
             throw new NotSupportedException($"Can not convert DbString type to {column.PropertyType} for column {column.ColumnName} -> {column.PropertyName}");
@@ -99,6 +98,6 @@ namespace Ooorm.Data
             else if (column.Info.HasAttribute<AsBinaryAttribute>() && TryGetStream(reader, index, out Stream stream))
                 return new BinaryFormatter().Deserialize(stream);
             throw new NotSupportedException($"Can not convert DbString type to {column.PropertyType} for column {column.ColumnName} -> {column.PropertyName}");
-        }        
+        }
     }
 }
