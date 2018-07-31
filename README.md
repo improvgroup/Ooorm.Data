@@ -2,7 +2,7 @@
 
 Define and manage your data layer from dotnet code
 
-## "Birds eye view" example
+## Example
 
 Connect to a sql database (in this case, Sql Server)
 ```
@@ -22,36 +22,34 @@ var db = new SqlDatabase(SqlServerConnectionSource.CreateSharedSource("Server=lo
 
 Create a table
 ```
+// classes implemeting IDbItem define tables
 class Person : IDbItem // implement IDbItem
-{
-    [Id]
-    [Column]
-    public int ID { get; set; }
-
-    [Column]
+{    
+    public int ID { get; set; } 
     public string Name { get; set; }
-
-    [Column]
     public string FavoritePizza { get; set; }
 }
 
 
-db.CreateTable<Person>();
+await db.CreateTable<Person>();
 ```
 
-CRUD operations
+Create, read, update, and delete a record
 ```
-
 var bob = new Person{ Name = "Bob", FavoritePizza = "Veggie" };
-db.Write(bob, new Person { Name = "Sally", FavoritePizza = "Greek" }, new Person { Name = "Soup", FavoritePizza = "Cheese" });
 
-var sally = (await db.Read<Person>((row, name) => row.Name == name), "Sally").Single();
+await db.Write(bob);
 
-sally.FavoritePizza = "Taco";
+var bobFromDb = await db.Read<Person>(bob.ID);
+var allPeople = await db.Read<Person>();
 
-await db.Update(sally);
+// expression converted to parameterized query
+var veggiePizzaEaters = await db.Read<Person>((row, pizza) => row.FavoritePizza == pizza, "Veggie");
 
-await db.Delete(bob.ID);
 
-var allPeople = await db.Read<Person>(); // [ { name: "Sally", favoritePizza: "Taco" }, { name: "Soup", favoritePizza: "Cheese" } ]
+bob.FavoritePizza = "Taco";
+
+await db.Update(bob);
+
+await db.Delete<Person>(bob.ID);
 ```

@@ -13,7 +13,7 @@ namespace Ooorm.Data
     /// <typeparam name="TDbCommand">Specific command type (ex: SqlCommand or SqlLiteCommand)</typeparam>
     public abstract class BaseDao<TDbConnection, TDbCommand, TDbReader> where TDbConnection : IDbConnection where TDbCommand : IDbCommand where TDbReader : IDataReader
     {
-        protected readonly IDataConsumer<TDbReader> consumer;
+        protected readonly   IDataConsumer<TDbReader> consumer;
         protected readonly ITypeProvider types;
 
         protected BaseDao(IDataConsumer<TDbReader> consumer, ITypeProvider types)
