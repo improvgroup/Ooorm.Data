@@ -41,7 +41,7 @@ namespace Ooorm.Data.Reflection
             return attr != null;
         }
 
-        public static IEnumerable<Column<T>> GetColumns<T>(this T value, bool exceptId = false)
+        public static IEnumerable<Column<T>> GetColumns<T>(this T value, bool exceptId = false) where T : IDbItem
             => typeof(T).GetProperties(PROPS)
                     .Where(p => !p.HasAttribute<DbIgnoreAttribute>())
                     .Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem.ID))) )

@@ -13,13 +13,15 @@ namespace Ooorm.Data
     /// <typeparam name="TDbCommand">Specific command type (ex: SqlCommand or SqlLiteCommand)</typeparam>
     public abstract class BaseDao<TDbConnection, TDbCommand, TDbReader> where TDbConnection : IDbConnection where TDbCommand : IDbCommand where TDbReader : IDataReader
     {
-        protected readonly   IDataConsumer<TDbReader> consumer;
+        protected readonly IDataConsumer<TDbReader> consumer;
         protected readonly ITypeProvider types;
+        protected readonly Func<IDatabase> db;
 
-        protected BaseDao(IDataConsumer<TDbReader> consumer, ITypeProvider types)
+        protected BaseDao(IDataConsumer<TDbReader> consumer, ITypeProvider types, Func<IDatabase> db)
         {
             this.consumer = consumer;
             this.types = types;
+            this.db = db;
         }
 
         public abstract TDbCommand GetCommand(string sql, TDbConnection connection);
@@ -58,13 +60,13 @@ namespace Ooorm.Data
 
         protected static readonly Dictionary<Type, Dictionary<string, Column>> columnCache = new Dictionary<Type, Dictionary<string, Column>>();
 
-        public static void CheckColumnCache<T>()
+        public static void CheckColumnCache<T>() where T : IDbItem
         {
             if (!columnCache.ContainsKey(typeof(T)))
                 columnCache[typeof(T)] = typeof(T).GetColumns().ToDictionary(c => c.ColumnName, c => c);
         }
 
-        public virtual IEnumerable<T> Read<T>(TDbConnection connection, string sql, object parameter)
+        public virtual IEnumerable<T> Read<T>(TDbConnection connection, string sql, object parameter) where T : IDbItem
         {
             using (var command = GetCommand(sql, connection))
             {
@@ -74,7 +76,7 @@ namespace Ooorm.Data
             }
         }
 
-        protected virtual IEnumerable<T> ExecuteReader<T>(TDbCommand command)
+        protected virtual IEnumerable<T> ExecuteReader<T>(TDbCommand command) where T : IDbItem
         {
             using (var reader = (TDbReader)command.ExecuteReader())
             {
@@ -82,7 +84,7 @@ namespace Ooorm.Data
             }
         }
 
-        protected virtual List<T> ParseReader<T>(TDbReader reader)
+        protected virtual List<T> ParseReader<T>(TDbReader reader) where T : IDbItem
         {
             var results = new List<T>();
             while (reader.Read())

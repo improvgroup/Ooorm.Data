@@ -11,20 +11,22 @@ namespace Ooorm.Data.SqlServer.Tests
             public int ID { get; set; }
             public string Key { get; set; }
             public int Value { get; set; }
+            public bool Active { get; set; }
         }
 
-        private SqlServerQueryProvider<DbModel> provider => new SqlServerQueryProvider<DbModel>();
+        private SqlServerQueryProvider<DbModel> provider => new SqlServerQueryProvider<DbModel>(() => null);
 
         private static readonly string ID = $"[{nameof(DbModel.ID)}]";
         private static readonly string KEY = $"[{nameof(DbModel.Key)}]";
         private static readonly string Value = $"[{nameof(DbModel.Value)}]";
+        private static readonly string Active = $"[{nameof(DbModel.Active)}]";
 
         [Fact]
         public void SupportTrue()
         {
             string clause = provider.WhereClause(m => true);
 
-            clause.Should().Be("WHERE 1=1");
+            clause.Should().Be("WHERE 1");
         }
 
         [Fact]
@@ -32,7 +34,7 @@ namespace Ooorm.Data.SqlServer.Tests
         {
             string clause = provider.WhereClause(m => false);
 
-            clause.Should().Be("WHERE 1=0");
+            clause.Should().Be("WHERE 0");
         }
 
         [Fact]
@@ -78,9 +80,9 @@ namespace Ooorm.Data.SqlServer.Tests
         [Fact]
         public void SupportNestedExpressions()
         {
-            string clause = provider.WhereClause(m => (m.Key == null || m.Value > 2) && true);
+            string clause = provider.WhereClause(m => (m.Key == null || m.Value > 2) && m.Active == true);
 
-            clause.Should().Be($"WHERE ((({KEY} IS NULL) OR ({Value} > 2)) AND 1=1)");
+            clause.Should().Be($"WHERE ((({KEY} IS NULL) OR ({Value} > 2)) AND ({Active} = 1))");
         }
     }
 }

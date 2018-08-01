@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data.SqlServer
 {
-    public abstract class SqlServerConnectionSource : IConnectionSource<SqlConnection>
+    public abstract class SqlConnection : IConnectionSource<System.Data.SqlClient.SqlConnection>
     {
         protected readonly string connectionString;
 
-        public SqlServerConnectionSource(string connectionString)
+        public SqlConnection(string connectionString)
         {
             this.connectionString = connectionString;
         }
@@ -21,7 +21,7 @@ namespace Ooorm.Data.SqlServer
         {
             get
             {
-                using (var connection = new SqlConnection(connectionString))
+                using (var connection = new System.Data.SqlClient.SqlConnection(connectionString))
                 {
                     try
                     {
@@ -36,14 +36,14 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
-        public abstract void WithConnection(Action<SqlConnection> action);
-        public abstract Task WithConnectionAsync(Action<SqlConnection> action);
-        public abstract Task WithConnectionAsync(Func<SqlConnection, Task> action);
+        public abstract void WithConnection(Action<System.Data.SqlClient.SqlConnection> action);
+        public abstract Task WithConnectionAsync(Action<System.Data.SqlClient.SqlConnection> action);
+        public abstract Task WithConnectionAsync(Func<System.Data.SqlClient.SqlConnection, Task> action);
 
-        public abstract T FromConnection<T>(Func<SqlConnection, T> action);
-        public abstract Task<T> FromConnectionAsync<T>(Func<SqlConnection, Task<T>> action);
+        public abstract T FromConnection<T>(Func<System.Data.SqlClient.SqlConnection, T> action);
+        public abstract Task<T> FromConnectionAsync<T>(Func<System.Data.SqlClient.SqlConnection, Task<T>> action);
 
-        internal Task<Task<IEnumerable<IDbItem>>> FromConnectionAsync(Func<SqlConnection, Task<object>> p)
+        internal Task<Task<IEnumerable<IDbItem>>> FromConnectionAsync(Func<System.Data.SqlClient.SqlConnection, Task<object>> p)
         {
             throw new NotImplementedException();
         }
@@ -53,12 +53,12 @@ namespace Ooorm.Data.SqlServer
         /// <summary>
         /// Returns a connection source that creates a new connection upon every request
         /// </summary>
-        public static UniqueConnectionSource CreateUniqueSource(string connectionString) => new UniqueConnectionSource(connectionString);
+        public static UniqueConnectionSource CreateTransient(string connectionString) => new UniqueConnectionSource(connectionString);
 
         /// <summary>
         /// Returns a connection source that keeps 1 connection open and uses it for every request
         /// </summary>
-        public static SharedConnectionSource CreateSharedSource(string connectionString) => new SharedConnectionSource(connectionString);
+        public static SharedConnectionSource CreateShared(string connectionString) => new SharedConnectionSource(connectionString);
     }
 
 }

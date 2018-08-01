@@ -8,6 +8,10 @@ namespace Ooorm.Data
 {
     public class DefaultTypeProvider : ITypeProvider
     {
+        private readonly Func<IDatabase> database;
+
+        public DefaultTypeProvider(Func<IDatabase> db) => database = db;
+
         public Type ClrType(DbType dbType)
         {
             switch (dbType)
@@ -193,9 +197,11 @@ namespace Ooorm.Data
         public object FromDbValue(object value, Type type)
         {
             if (type.IsGenericType && type == typeof(DbVal<>).MakeGenericType(type.GenericTypeArguments))
-                return Activator.CreateInstance(typeof(DbVal<>).MakeGenericType(type.GenericTypeArguments), value);
+                return Activator.CreateInstance(
+                    typeof(DbVal<>).MakeGenericType(type.GenericTypeArguments), value, database);
             else if (type.IsGenericType && type == typeof(DbRef<>).MakeGenericType(type.GenericTypeArguments))
-                return Activator.CreateInstance(typeof(DbRef<>).MakeGenericType(type.GenericTypeArguments), value);
+                return Activator.CreateInstance(
+                    typeof(DbRef<>).MakeGenericType(type.GenericTypeArguments), value, database);
             return value;
         }
     }

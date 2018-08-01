@@ -4,15 +4,15 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data.SqlServer
 {
-    public class UniqueConnectionSource : SqlServerConnectionSource
+    public class UniqueConnectionSource : SqlConnection
     {
         public UniqueConnectionSource(string connectionString) : base(connectionString) { }
 
         public override void Dispose() { }
 
-        public override void WithConnection(Action<SqlConnection> action)
+        public override void WithConnection(Action<System.Data.SqlClient.SqlConnection> action)
         {
-            using (var connection = new SqlConnection(connectionString))
+            using (var connection = new System.Data.SqlClient.SqlConnection(connectionString))
             {
                 connection.Open();
                 OpenConnections++;
@@ -22,9 +22,9 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
-        public override async Task WithConnectionAsync(Action<SqlConnection> action)
+        public override async Task WithConnectionAsync(Action<System.Data.SqlClient.SqlConnection> action)
         {
-            using (var connection = new SqlConnection(connectionString))
+            using (var connection = new System.Data.SqlClient.SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 OpenConnections++;
@@ -34,9 +34,9 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
-        public override async Task WithConnectionAsync(Func<SqlConnection, Task> action)
+        public override async Task WithConnectionAsync(Func<System.Data.SqlClient.SqlConnection, Task> action)
         {
-            using (var connection = new SqlConnection(connectionString))
+            using (var connection = new System.Data.SqlClient.SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 OpenConnections++;
@@ -46,9 +46,9 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
-        public override T FromConnection<T>(Func<SqlConnection, T> action)
+        public override T FromConnection<T>(Func<System.Data.SqlClient.SqlConnection, T> action)
         {
-            using (var connection = new SqlConnection(connectionString))
+            using (var connection = new System.Data.SqlClient.SqlConnection(connectionString))
             {
                 connection.Open();
                 OpenConnections++;
@@ -59,9 +59,9 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
-        public override async Task<T> FromConnectionAsync<T>(Func<SqlConnection, Task<T>> action)
+        public override async Task<T> FromConnectionAsync<T>(Func<System.Data.SqlClient.SqlConnection, Task<T>> action)
         {
-            using (var connection = new SqlConnection(connectionString))
+            using (var connection = new System.Data.SqlClient.SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 OpenConnections++;

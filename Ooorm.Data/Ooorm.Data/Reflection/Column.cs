@@ -37,6 +37,13 @@ namespace Ooorm.Data.Reflection
             Debug.Assert(model.GetType().IsEquivalentTo(ModelType), $"Type of {nameof(model)} passed to {nameof(GetFrom)} must match value of {nameof(ModelType)}.");
             return getter(model);
         }
+
+        public bool IsDefaultOn(object model)
+        {
+            var self = GetFrom(model);
+            var other = PropertyType.IsValueType ? Activator.CreateInstance(PropertyType) : null;
+            return self?.Equals(other) ?? true;
+        }
     }
 
     public class Column : Property
@@ -56,8 +63,10 @@ namespace Ooorm.Data.Reflection
     {
         public Property(PropertyInfo property) : base(property)
         {
-            setter = (Action<TModel, object>)property.SetMethod.CreateDelegate(typeof(Action<TModel, object>));
-            getter = (Func<TModel, object>)property.GetMethod.CreateDelegate(typeof(Func<TModel, object>));
+            var set = property.SetMethod.CreateDelegate(typeof(Action<,>).MakeGenericType(typeof(TModel), property.PropertyType));
+            setter = (m, v) => set.DynamicInvoke(m, v);
+            var get = property.GetMethod.CreateDelegate(typeof(Func<,>).MakeGenericType(typeof(TModel), property.PropertyType));
+            getter = m => get.DynamicInvoke(m);
         }
 
         private readonly Action<TModel, object> setter;

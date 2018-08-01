@@ -9,25 +9,28 @@ namespace Ooorm.Data.SqlServer
     {
         private readonly SqlServerQueryProvider queries = new SqlServerQueryProvider();
 
-        private readonly SqlDao dao = new SqlDao();
+        private readonly SqlDao dao;
 
         private readonly Dictionary<Type, object> repositories = new Dictionary<Type, object>();
 
         private ICrudRepository<T> Repos<T>() where T : IDbItem
-            => (ICrudRepository<T>)(repositories.ContainsKey(typeof(T)) ? repositories[typeof(T)] : (repositories[typeof(T)] = new SqlRepository<T>(source)));
+            => (ICrudRepository<T>)(repositories.ContainsKey(typeof(T)) ? repositories[typeof(T)] : (repositories[typeof(T)] = new SqlRepository<T>(source, () => this)));
 
         private ICrudRepository Repos(Type type)
-            => (ICrudRepository)(repositories.ContainsKey(type) ? repositories[type] : (repositories[type] = Activator.CreateInstance(typeof(SqlRepository<>).MakeGenericType(type), source)));
+            => (ICrudRepository)(repositories.ContainsKey(type) ? repositories[type] : (repositories[type] = Activator.CreateInstance(typeof(SqlRepository<>).MakeGenericType(type), source, (Func<IDatabase>)(() => this))));
 
-        private readonly SqlServerConnectionSource source;
+        private readonly SqlConnection source;
 
-        public SqlDatabase(SqlServerConnectionSource source) => this.source = source;
+        public SqlDatabase(SqlConnection source) => (this.source, dao) = (source, new SqlDao(() => this));
 
         public async Task<int> Write<T>(params T[] values) where T : IDbItem
             => await Repos<T>().Write(values);
 
         public async Task<int> Delete<T>(params int[] ids) where T : IDbItem
             => await Repos<T>().Delete(ids);
+
+        public async Task<int> Delete<T>(Expression<Func<T, bool>> predicate) where T : IDbItem
+            => await Repos<T>().Delete(predicate);
 
         public async Task<IEnumerable<T>> Read<T>() where T : IDbItem
             => await Repos<T>().Read();
@@ -68,10 +71,16 @@ namespace Ooorm.Data.SqlServer
                 await Repos(type).DropTable();
         }
 
+        /// <summary>
+        /// Drops a database if it exists
+        /// </summary>
         public async Task DropDatabase(string name)
             => await source.WithConnectionAsync(async c
                 => await dao.ExecuteAsync(c, queries.DropDatabaseSql(name), null));
 
+        /// <summary>
+        /// Creates a database if it doesn't exist
+        /// </summary>
         public async Task CreateDatabase(string name, params Type[] tables)
         {
             await source.WithConnectionAsync(async c => await dao.ExecuteAsync(c, queries.DatabaseSql(name), null));

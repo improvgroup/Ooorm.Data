@@ -63,12 +63,18 @@ namespace Ooorm.Data
             {
                 if (constant.Value is int intvalue)
                     builder.Append($"{intvalue}");
+                else if (constant.Value is IdConvertable<int> dbval)
+                    builder.Append($"{dbval.ToId()}");
+                else if (constant.Value is IdConvertable<int?> dbref && dbref.ToId().HasValue)
+                    builder.Append($"{dbref.ToId()}");
+                else if (constant.Value is string text)
+                    builder.Append($"'{text}'");
                 else if (constant.Value is bool boolvalue)
                 {
                     if (boolvalue)
-                        builder.Append("1=1");
+                        builder.Append("1");
                     else
-                        builder.Append("1=0");
+                        builder.Append("0");
                 }
                 else
                     throw new Exception($"Constants of type {constant.Value.GetType()} are not supported - use parameterization");
