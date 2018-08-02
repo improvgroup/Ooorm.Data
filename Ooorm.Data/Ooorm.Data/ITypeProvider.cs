@@ -4,7 +4,7 @@ using System.Data;
 
 namespace Ooorm.Data
 {
-    public interface ITypeProvider
+    internal interface ITypeProvider
     {
         DbType DbType<TClrType>();
         DbType DbType(Type clrType);

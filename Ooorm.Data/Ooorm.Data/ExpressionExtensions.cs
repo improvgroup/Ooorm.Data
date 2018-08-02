@@ -10,12 +10,12 @@ namespace Ooorm.Data
         /// <summary>
         /// Default implementation of a predicate to sql transpiler
         /// </summary>
-        public static string ToSql<T>(this Expression<Func<T, bool>> predicate) => Where(predicate.Body);
+        internal static string ToSql<T>(this Expression<Func<T, bool>> predicate) => Where(predicate.Body);
 
         /// <summary>
         /// Default implementation of a predicate (with query parameter) to sql transpiler
         /// </summary>
-        public static string ToSql<T, TParam>(this Expression<Func<T, TParam, bool>> predicate) => Where(predicate.Body, predicate.Parameters.Last().Name);
+        internal static string ToSql<T, TParam>(this Expression<Func<T, TParam, bool>> predicate) => Where(predicate.Body, predicate.Parameters.Last().Name);
 
         private static string Operand(ExpressionType type)
         {
@@ -50,14 +50,14 @@ namespace Ooorm.Data
             }
         }
 
-        private static string Where(Expression exp, string paramName = null)
+        internal static string Where(Expression exp, string paramName = null)
         {
             var builder = new StringBuilder();
             BuildWhere(exp, builder, paramName);
             return builder.ToString();
         }
 
-        private static void BuildWhere(Expression exp, StringBuilder builder, string paramName = null)
+        internal static void BuildWhere(Expression exp, StringBuilder builder, string paramName = null)
         {
             if (exp is ConstantExpression constant)
             {

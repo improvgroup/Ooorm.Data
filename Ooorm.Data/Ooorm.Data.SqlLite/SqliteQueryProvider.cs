@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace Ooorm.Data.QueryProviders
 {
-    public class SqliteQueryProvider<T> : IQueryProvider<T> where T : IDbItem
+    internal class SqliteQueryProvider<T> : IQueryProvider<T> where T : IDbItem
     {
         public string CreateTableSql()
         {

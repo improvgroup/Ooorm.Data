@@ -124,8 +124,10 @@ namespace Ooorm.Data.SqlServer.Tests
             try
             {
                 var db = new SqlDatabase(SqlConnection.CreateShared(TestFixture.ConnectionString(dbName)));
-                await db.CreateTables(typeof(Widget), typeof(WidgetDoodad), typeof(Doodad));
 
+                await typeof(Widget).CreateTableIn(db);
+                await typeof(WidgetDoodad).CreateTableIn(db);
+                await typeof(Doodad).CreateTableIn(db);
 
                 var w1 = await new Widget { Value = 100 }.WriteTo(db);
                 var w2 = await new Widget { Value = 200 }.WriteTo(db);

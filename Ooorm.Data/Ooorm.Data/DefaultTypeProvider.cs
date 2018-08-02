@@ -6,7 +6,7 @@ using Ooorm.Data.Reflection;
 
 namespace Ooorm.Data
 {
-    public class DefaultTypeProvider : ITypeProvider
+    internal class DefaultTypeProvider : ITypeProvider
     {
         private readonly Func<IDatabase> database;
 

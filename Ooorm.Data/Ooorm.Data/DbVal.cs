@@ -33,5 +33,7 @@ namespace Ooorm.Data
             else
                 return base.Equals(obj);
         }
+
+        public override int GetHashCode() => -1584136870 + value.GetHashCode();
     }
 }

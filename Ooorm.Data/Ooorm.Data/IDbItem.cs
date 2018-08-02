@@ -14,28 +14,23 @@ namespace Ooorm.Data
 
     public static class IDbItemExtensions
     {
+        public static async Task CreateTableIn(this Type type, IDatabase db)
+            => await db.CreateTables(type);
+
         public static async Task<T> WriteTo<T>(this T item, IDatabase db) where T : IDbItem
         {
-            if (item.ID == default)
-                await db.Write(item);
-            else
-                await db.Update(item);
+            var rows = item.ID == default ? await db.Write(item) : await db.Update(item);
             return item;
         }
 
         public static async Task<int> DeleteMatchingFrom<T>(this T item, IDatabase db = null) where T : IDbItem
-        {
-            if (item.ID != default)
-                return await db.Delete<T>(item.ID);
-            else
-                return await db.Delete(item.MatchExpression());
-        }
+            => item.ID != default ? await db.Delete<T>(item.ID) : await db.Delete(item.MatchingPredicate());
 
         public static async Task<IEnumerable<T>> ReadMatchingFrom<T>(this T item, IDatabase db = null) where T : IDbItem
-            => await db.Read(MatchExpression(item));
+            => await db.Read(MatchingPredicate(item));
 
 
-        public static Expression<Func<T, bool>> MatchExpression<T>(this T item) where T : IDbItem
+        public static Expression<Func<T, bool>> MatchingPredicate<T>(this T item) where T : IDbItem
         {
             var p = Expression.Parameter(typeof(T), "row");
             var matches = MatchExpressions(item, p);

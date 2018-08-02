@@ -11,7 +11,7 @@ namespace Ooorm.Data
         Task CreateTables(params Type[] tables);
     }
 
-    public interface ISchemaProvider
+    internal interface ISchemaProvider
     {
         string DropDatabaseSql(string name);
         string DatabaseSql(string name);

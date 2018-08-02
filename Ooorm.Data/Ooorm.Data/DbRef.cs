@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Ooorm.Data
@@ -35,5 +36,8 @@ namespace Ooorm.Data
             else
                 return base.Equals(obj);
         }
+
+        public override int GetHashCode() => -1584136870 + EqualityComparer<int?>.Default.GetHashCode(value);
+
     }
 }
