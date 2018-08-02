@@ -10,25 +10,28 @@ namespace Ooorm.Data.SqlServer
 {
     internal class SqlServerQueryProvider : ISchemaProvider
     {
-        protected static readonly ITypeProvider types = new SqlServerTypeProvider();
-
         public string DatabaseSql(string name)
-            => $"USE MASTER; CREATE DATABASE [{name}];";
-
-
+            => $"USE MASTER; IF db_id('{name}') is null CREATE DATABASE [{name}];";
 
         public string DropDatabaseSql(string name)
             => $@"USE[master];
+IF db_id('{name}') is not null
+BEGIN
 DECLARE @kill varchar(8000) = '';
 SELECT @kill = @kill + 'kill ' + CONVERT(varchar(5), session_id) + ';'
 FROM sys.dm_exec_sessions
 WHERE database_id = db_id('{name}')
 EXEC(@kill);
-DROP DATABASE [{name}];";
+EXEC('DROP DATABASE [{name}]');
+END;";
     }
 
     internal class SqlServerQueryProvider<T> : SqlServerQueryProvider, IQueryProvider<T> where T : IDbItem
     {
+        protected readonly ITypeProvider types;
+
+        public SqlServerQueryProvider(Func<IDatabase> db) => types = new SqlServerTypeProvider(db);
+
         protected static readonly Column[] COLUMNS = typeof(T).GetColumns().ToArray();
         protected static readonly Column[] NON_ID_COLUMNS = typeof(T).GetColumns(exceptId: true).ToArray();
         protected static readonly Column ID_COLUMN = COLUMNS.Single(c => c.Info.HasAttribute<IdAttribute>() || c.PropertyName == nameof(IDbItem.ID));

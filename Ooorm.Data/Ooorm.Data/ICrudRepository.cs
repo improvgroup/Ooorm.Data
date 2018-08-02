@@ -20,5 +20,6 @@ namespace Ooorm.Data
         Task<IEnumerable<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, object param);
         Task<int> Update(params T[] values);
         Task<int> Delete(params int[] ids);
+        Task<int> Delete(Expression<Func<T, bool>> predicate);
     }
 }

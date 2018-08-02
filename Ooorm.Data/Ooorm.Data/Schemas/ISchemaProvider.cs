@@ -1,8 +1,8 @@
 ﻿namespace Ooorm.Data.Schemas
 {
-    public interface ISchemaProvider
+    internal interface ISchemaProvider
     {
-        string DatabaseSql(string name); 
-        string TableSql<TModel>(ITypeProvider types) where TModel : IDbItem;        
+        string DatabaseSql(string name);
+        string TableSql<TModel>(ITypeProvider types) where TModel : IDbItem;
     }
 }

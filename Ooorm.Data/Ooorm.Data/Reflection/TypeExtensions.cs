@@ -9,13 +9,13 @@ namespace Ooorm.Data.Reflection
     {
         const BindingFlags PROPS = BindingFlags.Public | BindingFlags.Instance;
 
-        public static bool HasAttribute<TAttribute>(this Type type) where TAttribute : Attribute
+        internal static bool HasAttribute<TAttribute>(this Type type) where TAttribute : Attribute
         {
             var attr = type.GetCustomAttribute<TAttribute>();
             return attr != null;
         }
 
-        public static bool TryGetAttribute<TAttribute>(this Type type, out TAttribute attribute) where TAttribute : Attribute
+        internal static bool TryGetAttribute<TAttribute>(this Type type, out TAttribute attribute) where TAttribute : Attribute
         {
             var attr = type.GetCustomAttribute<TAttribute>();
             if (attr != null)
@@ -25,13 +25,13 @@ namespace Ooorm.Data.Reflection
             return attr != null;
         }
 
-        public static bool HasAttribute<TAttribute>(this MemberInfo member) where TAttribute : Attribute
+        internal static bool HasAttribute<TAttribute>(this MemberInfo member) where TAttribute : Attribute
         {
             var attr = member.GetCustomAttribute<TAttribute>();
             return attr != null;
         }
 
-        public static bool TryGetAttribute<TAttribute>(this MemberInfo member, out TAttribute attribute) where TAttribute : Attribute
+        internal static bool TryGetAttribute<TAttribute>(this MemberInfo member, out TAttribute attribute) where TAttribute : Attribute
         {
             var attr = member.GetCustomAttribute<TAttribute>();
             if (attr != null)
@@ -41,13 +41,13 @@ namespace Ooorm.Data.Reflection
             return attr != null;
         }
 
-        public static IEnumerable<Column<T>> GetColumns<T>(this T value, bool exceptId = false)
+        internal static IEnumerable<Column<T>> GetColumns<T>(this T value, bool exceptId = false) where T : IDbItem
             => typeof(T).GetProperties(PROPS)
                     .Where(p => !p.HasAttribute<DbIgnoreAttribute>())
                     .Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem.ID))) )
                     .Select(p => new Column<T>(p));
 
-        public static IEnumerable<Column> GetColumns(this Type type, bool exceptId = false)
+        internal static IEnumerable<Column> GetColumns(this Type type, bool exceptId = false)
         {
             var props = type.GetProperties(PROPS).ToArray();
             var fields = props.Where(p => !p.HasAttribute<DbIgnoreAttribute>()).ToArray();
@@ -56,11 +56,11 @@ namespace Ooorm.Data.Reflection
             return columns;
         }
 
-        public static IEnumerable<Property<T>> GetDataProperties<T>(this T value)
+        internal static IEnumerable<Property<T>> GetDataProperties<T>(this T value)
             => typeof(T).GetProperties(PROPS)
                     .Select(p => new Property<T>(p));
 
-        public static IEnumerable<Property> GetDataProperties(this Type type)
+        internal static IEnumerable<Property> GetDataProperties(this Type type)
             => type.GetProperties(PROPS)
                     .Select(p => new Property(p));
     }

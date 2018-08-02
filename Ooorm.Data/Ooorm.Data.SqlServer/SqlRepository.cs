@@ -11,11 +11,12 @@ namespace Ooorm.Data.SqlServer
     /// </summary>
     public class SqlRepository<T> : ICrudRepository<T> where T : IDbItem
     {
-        protected readonly SqlServerConnectionSource ConnectionSource;
-        private readonly SqlDao dao = new SqlDao();
-        private readonly SqlServerQueryProvider<T> queries = new SqlServerQueryProvider<T>();
+        protected readonly SqlConnection ConnectionSource;
+        private readonly SqlDao dao;
+        private readonly SqlServerQueryProvider<T> queries;
 
-        public SqlRepository(SqlServerConnectionSource connection) => ConnectionSource = connection;
+        public SqlRepository(SqlConnection connection, Func<IDatabase> db)
+            => (ConnectionSource, dao, queries) = (connection, new SqlDao(db), new SqlServerQueryProvider<T>(db));
 
         public async Task<int> Write(params T[] values)
             => await ConnectionSource.FromConnectionAsync(async c => {
@@ -61,6 +62,9 @@ namespace Ooorm.Data.SqlServer
                     sum += await task;
                 return sum;
             });
+
+        public async Task<int> Delete(Expression<Func<T, bool>> predicate)
+            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate), null)));
 
         public async Task<int> CreateTable()
              => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.CreateTableSql(), null)));

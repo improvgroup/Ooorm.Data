@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace Ooorm.Data.QueryProviders
 {
-    public interface IQueryProvider<T> where T : IDbItem
+    internal interface IQueryProvider<T> where T : IDbItem
     {
         string WhereClause<TParam>(Expression<Func<T, TParam, bool>> predicate);
         string WhereClause(Expression<Func<T, bool>> predicate);

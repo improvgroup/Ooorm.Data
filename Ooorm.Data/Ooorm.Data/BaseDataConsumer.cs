@@ -10,7 +10,7 @@ using System.Data;
 
 namespace Ooorm.Data
 {
-    public abstract class BaseDataConsumer<TDataReader> : IDataConsumer<TDataReader> where TDataReader : IDataReader
+    internal abstract class BaseDataConsumer<TDataReader> : IDataConsumer<TDataReader> where TDataReader : IDataReader
     {
         protected abstract bool TryGetStream(TDataReader reader, int ordinal, out Stream stream);
 

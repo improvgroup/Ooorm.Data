@@ -10,12 +10,12 @@ namespace Ooorm.Data
         /// <summary>
         /// Default implementation of a predicate to sql transpiler
         /// </summary>
-        public static string ToSql<T>(this Expression<Func<T, bool>> predicate) => Where(predicate.Body);
+        internal static string ToSql<T>(this Expression<Func<T, bool>> predicate) => Where(predicate.Body);
 
         /// <summary>
         /// Default implementation of a predicate (with query parameter) to sql transpiler
         /// </summary>
-        public static string ToSql<T, TParam>(this Expression<Func<T, TParam, bool>> predicate) => Where(predicate.Body, predicate.Parameters.Last().Name);
+        internal static string ToSql<T, TParam>(this Expression<Func<T, TParam, bool>> predicate) => Where(predicate.Body, predicate.Parameters.Last().Name);
 
         private static string Operand(ExpressionType type)
         {
@@ -50,25 +50,31 @@ namespace Ooorm.Data
             }
         }
 
-        private static string Where(Expression exp, string paramName = null)
+        internal static string Where(Expression exp, string paramName = null)
         {
             var builder = new StringBuilder();
             BuildWhere(exp, builder, paramName);
             return builder.ToString();
         }
 
-        private static void BuildWhere(Expression exp, StringBuilder builder, string paramName = null)
+        internal static void BuildWhere(Expression exp, StringBuilder builder, string paramName = null)
         {
             if (exp is ConstantExpression constant)
             {
                 if (constant.Value is int intvalue)
                     builder.Append($"{intvalue}");
+                else if (constant.Value is IdConvertable<int> dbval)
+                    builder.Append($"{dbval.ToId()}");
+                else if (constant.Value is IdConvertable<int?> dbref && dbref.ToId().HasValue)
+                    builder.Append($"{dbref.ToId()}");
+                else if (constant.Value is string text)
+                    builder.Append($"'{text}'");
                 else if (constant.Value is bool boolvalue)
                 {
                     if (boolvalue)
-                        builder.Append("1=1");
+                        builder.Append("1");
                     else
-                        builder.Append("1=0");
+                        builder.Append("0");
                 }
                 else
                     throw new Exception($"Constants of type {constant.Value.GetType()} are not supported - use parameterization");

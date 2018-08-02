@@ -11,7 +11,7 @@ namespace Ooorm.Data.SqlServer
     {
         private readonly DefaultTypeProvider defaults;
 
-        public SqlServerTypeProvider() => defaults = new DefaultTypeProvider();
+        public SqlServerTypeProvider(Func<IDatabase> db) => defaults = new DefaultTypeProvider(db);
 
         public Type ClrType(DbType dbType) => defaults.ClrType(dbType);
 
