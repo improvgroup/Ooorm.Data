@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.SqlLite", "Ooorm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.SqlServer.Tests", "Ooorm.Data.SqlServer.Tests\Ooorm.Data.SqlServer.Tests.csproj", "{D40A88CA-668F-45BA-BCDF-5EF28583FB94}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.Volatile", "Ooorm.Data.Volatile\Ooorm.Data.Volatile.csproj", "{35454524-5BF8-42B0-B3E5-33ADBC3B3573}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{D40A88CA-668F-45BA-BCDF-5EF28583FB94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D40A88CA-668F-45BA-BCDF-5EF28583FB94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D40A88CA-668F-45BA-BCDF-5EF28583FB94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35454524-5BF8-42B0-B3E5-33ADBC3B3573}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35454524-5BF8-42B0-B3E5-33ADBC3B3573}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35454524-5BF8-42B0-B3E5-33ADBC3B3573}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35454524-5BF8-42B0-B3E5-33ADBC3B3573}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

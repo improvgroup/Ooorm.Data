@@ -32,6 +32,9 @@ namespace Ooorm.Data.SqlServer
         public async Task<int> Delete<T>(Expression<Func<T, bool>> predicate) where T : IDbItem
             => await Repos<T>().Delete(predicate);
 
+        public async Task<int> Delete<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem
+            => await Repos<T>().Delete(predicate, param);
+
         public async Task<IEnumerable<T>> Read<T>() where T : IDbItem
             => await Repos<T>().Read();
 
@@ -41,7 +44,7 @@ namespace Ooorm.Data.SqlServer
         public async Task<IEnumerable<T>> Read<T>(Expression<Func<T, bool>> predicate) where T : IDbItem
             => await Repos<T>().Read(predicate);
 
-        public async Task<IEnumerable<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, object param) where T : IDbItem
+        public async Task<IEnumerable<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem
             => await Repos<T>().Read(predicate, param);
 
         public async Task<int> Update<T>(params T[] values) where T : IDbItem

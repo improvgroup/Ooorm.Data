@@ -74,7 +74,6 @@ namespace Ooorm.Data.SqlServer
         protected async Task<IEnumerable<T>> ExecuteReaderAsync<T>(SqlCommand command) where T : IDbItem
             => await Task.Run(() => ExecuteReader<T>(command));
 
-
         protected override IEnumerable<T> ExecuteReader<T>(SqlCommand command)
         {
             using (var reader = command.ExecuteReader(CommandBehavior.SequentialAccess))
