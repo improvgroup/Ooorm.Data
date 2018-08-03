@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Xml;
 using Ooorm.Data.Reflection;
 
@@ -71,31 +72,20 @@ namespace Ooorm.Data
         private static readonly IReadOnlyDictionary<Type, DbType> _typeMap = new Dictionary<Type, DbType>
         {
             { typeof(bool),           System.Data.DbType.Boolean        },
-            { typeof(bool?),          System.Data.DbType.Boolean        },
             { typeof(byte),           System.Data.DbType.Byte           },
-            { typeof(byte?),          System.Data.DbType.Byte           },
             { typeof(sbyte),          System.Data.DbType.SByte          },
-            { typeof(sbyte?),         System.Data.DbType.SByte          },
             { typeof(short),          System.Data.DbType.Int16          },
-            { typeof(short?),         System.Data.DbType.Int16          },
             { typeof(ushort),         System.Data.DbType.UInt16         },
-            { typeof(ushort?),        System.Data.DbType.UInt16         },
             { typeof(int),            System.Data.DbType.Int32          },
             { typeof(int?),           System.Data.DbType.Int32          },
             { typeof(DbVal<>),        System.Data.DbType.Int32          },
             { typeof(DbRef<>),        System.Data.DbType.Int32          },
             { typeof(uint),           System.Data.DbType.UInt32         },
-            { typeof(uint?),          System.Data.DbType.UInt32         },
             { typeof(long),           System.Data.DbType.Int64          },
-            { typeof(long?),          System.Data.DbType.Int64          },
             { typeof(ulong),          System.Data.DbType.UInt64         },
-            { typeof(ulong?),         System.Data.DbType.UInt64         },
             { typeof(float),          System.Data.DbType.Single         },
-            { typeof(float?),         System.Data.DbType.Single         },
             { typeof(double),         System.Data.DbType.Double         },
-            { typeof(double?),        System.Data.DbType.Double         },
             { typeof(decimal),        System.Data.DbType.Decimal        },
-            { typeof(decimal?),       System.Data.DbType.Decimal        },
             { typeof(char[]),         System.Data.DbType.AnsiString     },
             { typeof(string),         System.Data.DbType.String         },
             { typeof(Guid),           System.Data.DbType.Guid           },
@@ -110,11 +100,26 @@ namespace Ooorm.Data
 
         public DbType DbType(Type clrType)
         {
-            if (clrType.IsGenericType && (clrType == typeof(DbRef<>).MakeGenericType(clrType.GenericTypeArguments) || clrType == typeof(DbVal<>).MakeGenericType(clrType.GenericTypeArguments)))
-                return System.Data.DbType.Int32;
-            else
+            if (_typeMap.ContainsKey(clrType))
                 return _typeMap[clrType];
+            else if (IsNullable(clrType, out Type generic) && _typeMap.ContainsKey(generic))
+                return _typeMap[generic];
+            else if (IsDbVal(clrType) || IsDbRef(clrType))
+                return System.Data.DbType.Int32;
+            else if (clrType.IsEnum)
+                return DbType(clrType.GetEnumUnderlyingType());
+            else
+                throw new InvalidOperationException($"Cannot translate clr type {clrType} to a database type");
         }
+
+        private bool IsNullable(Type clrType, out Type generic)
+            => (clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Nullable<>)) ? (generic = clrType.GenericTypeArguments.FirstOrDefault()) != null : (generic = null) != null;
+
+        private bool IsDbVal(Type clrType)
+            => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(DbVal<>);
+
+        private bool IsDbRef(Type clrType)
+            => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(DbRef<>);
 
         public bool IsDbValueType(Type clrType)
             => (clrType.IsGenericType && (clrType == typeof(DbRef<>).MakeGenericType(clrType.GenericTypeArguments) || clrType == typeof(DbVal<>).MakeGenericType(clrType.GenericTypeArguments)))
@@ -187,7 +192,11 @@ namespace Ooorm.Data
 
         public object ToDbValue(object value)
         {
-            if (value is IdConvertable<int> valId)
+            if (value == null)
+                return DBNull.Value;
+            else if (value.GetType().IsEnum)
+                return (int)value;
+            else if (value is IdConvertable<int> valId)
                 return valId.ToId();
             else if (value is IdConvertable<int?> refId)
                 return refId.ToId();
@@ -196,10 +205,14 @@ namespace Ooorm.Data
 
         public object FromDbValue(object value, Type type)
         {
-            if (type.IsGenericType && type == typeof(DbVal<>).MakeGenericType(type.GenericTypeArguments))
+            if (value == DBNull.Value)
+                return null;
+            if (type.IsEnum)
+                return Enum.ToObject(type, value);
+            if (IsDbVal(type))
                 return Activator.CreateInstance(
                     typeof(DbVal<>).MakeGenericType(type.GenericTypeArguments), value, database);
-            else if (type.IsGenericType && type == typeof(DbRef<>).MakeGenericType(type.GenericTypeArguments))
+            else if (IsDbRef(type))
                 return Activator.CreateInstance(
                     typeof(DbRef<>).MakeGenericType(type.GenericTypeArguments), value, database);
             return value;

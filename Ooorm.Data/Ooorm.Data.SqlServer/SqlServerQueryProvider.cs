@@ -99,7 +99,7 @@ END;";
             string sql =
 $@"CREATE TABLE [{name}] (
     [{ID_COLUMN.ColumnName}] int IDENTITY(1,1) PRIMARY KEY,
-    {string.Join($",{Environment.NewLine}    ", NON_ID_COLUMNS.Select(c => $"{c.ColumnName} {types.DbTypeString(c)}"))}
+    {string.Join($",{Environment.NewLine}    ", NON_ID_COLUMNS.Select(c => $"[{c.ColumnName}] {types.DbTypeString(c)}"))}
 );";
             return sql;
         }
