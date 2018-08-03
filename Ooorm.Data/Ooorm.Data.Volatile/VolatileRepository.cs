@@ -40,7 +40,7 @@ namespace Ooorm.Data.Volatile
             else
             {
                 int start = id / BUCKET_SIZE;
-                bucket = new Bucket(start, start + BUCKET_SIZE);
+                bucket = new Bucket(start, start + BUCKET_SIZE - 1);
                 lock (bucketMutationLock)
                 {
                     Buckets[start] = bucket;
@@ -141,7 +141,6 @@ namespace Ooorm.Data.Volatile
                 return count;
             });
         }
-
 
         public async Task<IEnumerable<T>> Read()
         {
