@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.Volatile", "Ooor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.Volatile.Tests", "Ooorm.Data.Volatile.Tests\Ooorm.Data.Volatile.Tests.csproj", "{C4292508-C9CC-4DD0-9E5D-87913EDBB46A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.SignalrHub", "Ooorm.Data.SignalrHub\Ooorm.Data.SignalrHub.csproj", "{C7BFF0D9-ADE2-42ED-BB4C-F828F3A4430E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{C4292508-C9CC-4DD0-9E5D-87913EDBB46A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4292508-C9CC-4DD0-9E5D-87913EDBB46A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4292508-C9CC-4DD0-9E5D-87913EDBB46A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7BFF0D9-ADE2-42ED-BB4C-F828F3A4430E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7BFF0D9-ADE2-42ED-BB4C-F828F3A4430E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7BFF0D9-ADE2-42ED-BB4C-F828F3A4430E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7BFF0D9-ADE2-42ED-BB4C-F828F3A4430E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
