@@ -13,9 +13,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.SqlServer.Tests"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.Volatile", "Ooorm.Data.Volatile\Ooorm.Data.Volatile.csproj", "{35454524-5BF8-42B0-B3E5-33ADBC3B3573}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.Volatile.Tests", "Ooorm.Data.Volatile.Tests\Ooorm.Data.Volatile.Tests.csproj", "{C4292508-C9CC-4DD0-9E5D-87913EDBB46A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.Volatile.Tests", "Ooorm.Data.Volatile.Tests\Ooorm.Data.Volatile.Tests.csproj", "{C4292508-C9CC-4DD0-9E5D-87913EDBB46A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.SignalrHub", "Ooorm.Data.SignalrHub\Ooorm.Data.SignalrHub.csproj", "{C7BFF0D9-ADE2-42ED-BB4C-F828F3A4430E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.SignalrHub", "Ooorm.Data.SignalrHub\Ooorm.Data.SignalrHub.csproj", "{C7BFF0D9-ADE2-42ED-BB4C-F828F3A4430E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.SignalrClient", "Ooorm.Data.SignalrClient\Ooorm.Data.SignalrClient.csproj", "{EA6179D7-554D-4D4C-9688-24D1D93AEF6F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.Signalr.Tests", "Ooorm.Data.Signalr.Tests\Ooorm.Data.Signalr.Tests.csproj", "{323D0C51-03A2-4439-AEB0-D271124BB206}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ManualTests", "ManualTests", "{B9AD6D17-460E-46AB-AAFC-39BD07396C0C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalRManualTest", "SignalRManualTest\SignalRManualTest.csproj", "{CEC220AF-23BA-401F-A151-25800DD65D09}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,9 +59,24 @@ Global
 		{C7BFF0D9-ADE2-42ED-BB4C-F828F3A4430E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7BFF0D9-ADE2-42ED-BB4C-F828F3A4430E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C7BFF0D9-ADE2-42ED-BB4C-F828F3A4430E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA6179D7-554D-4D4C-9688-24D1D93AEF6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA6179D7-554D-4D4C-9688-24D1D93AEF6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA6179D7-554D-4D4C-9688-24D1D93AEF6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA6179D7-554D-4D4C-9688-24D1D93AEF6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{323D0C51-03A2-4439-AEB0-D271124BB206}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{323D0C51-03A2-4439-AEB0-D271124BB206}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{323D0C51-03A2-4439-AEB0-D271124BB206}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{323D0C51-03A2-4439-AEB0-D271124BB206}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEC220AF-23BA-401F-A151-25800DD65D09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEC220AF-23BA-401F-A151-25800DD65D09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEC220AF-23BA-401F-A151-25800DD65D09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEC220AF-23BA-401F-A151-25800DD65D09}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CEC220AF-23BA-401F-A151-25800DD65D09} = {B9AD6D17-460E-46AB-AAFC-39BD07396C0C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DBCAB33C-3A37-4AC4-AD97-A27C6B4C9C7F}
