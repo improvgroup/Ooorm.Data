@@ -14,7 +14,7 @@ namespace Ooorm.Data.Signalr.Tests
     {
         const string url = "https://localhost:50002";
 
-        public HubClientTests()
+        static HubClientTests()
         {
             Task.Run(() =>
                 WebHost
