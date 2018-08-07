@@ -53,6 +53,12 @@ namespace Ooorm.Data.Signalr.Tests
         public void ConfigureServices(IServiceCollection services)
         {
             var db = new VolatileDatabase();
+            Task.Run(async () =>
+            {
+                await db.CreateTable<DatabaseItem>();
+                await db.CreateTable<ItemMetadata>();
+            }).Wait();
+
             services.AddTransient<IDatabase>((s) => db);
             services.AddSignalR();
         }
