@@ -14,10 +14,10 @@ namespace Ooorm.Data
     internal abstract class BaseDao<TDbConnection, TDbCommand, TDbReader> where TDbConnection : IDbConnection where TDbCommand : IDbCommand where TDbReader : IDataReader
     {
         protected readonly IDataConsumer<TDbReader> consumer;
-        protected readonly ITypeProvider types;
+        protected readonly ITypeResolver types;
         protected readonly Func<IDatabase> db;
 
-        protected BaseDao(IDataConsumer<TDbReader> consumer, ITypeProvider types, Func<IDatabase> db)
+        protected BaseDao(IDataConsumer<TDbReader> consumer, ITypeResolver types, Func<IDatabase> db)
         {
             this.consumer = consumer;
             this.types = types;

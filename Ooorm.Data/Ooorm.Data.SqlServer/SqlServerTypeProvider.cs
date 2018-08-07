@@ -7,7 +7,7 @@ namespace Ooorm.Data.SqlServer
     /// <summary>
     /// Provides type translation maps for Microsoft Sql Server
     /// </summary>
-    internal class SqlServerTypeProvider : ITypeProvider
+    internal class SqlServerTypeProvider : ITypeResolver
     {
         private readonly DefaultTypeProvider defaults;
 

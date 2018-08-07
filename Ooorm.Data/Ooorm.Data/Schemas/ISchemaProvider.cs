@@ -3,6 +3,6 @@
     internal interface ISchemaProvider
     {
         string DatabaseSql(string name);
-        string TableSql<TModel>(ITypeProvider types) where TModel : IDbItem;
+        string TableSql<TModel>(ITypeResolver types) where TModel : IDbItem;
     }
 }

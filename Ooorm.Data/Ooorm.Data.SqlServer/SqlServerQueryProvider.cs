@@ -28,7 +28,7 @@ END;";
 
     internal class SqlServerQueryProvider<T> : SqlServerQueryProvider, IQueryProvider<T> where T : IDbItem
     {
-        protected readonly ITypeProvider types;
+        protected readonly ITypeResolver types;
 
         public SqlServerQueryProvider(Func<IDatabase> db) => types = new SqlServerTypeProvider(db);
 

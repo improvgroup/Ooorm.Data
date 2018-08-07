@@ -77,7 +77,9 @@ namespace Ooorm.Data.Volatile
             return buckets;
         }
 
-        public VolatileRepository(Func<IDatabase> db) => database = db;
+        protected readonly bool manageIds;
+
+        public VolatileRepository(Func<IDatabase> db, bool manageIds = true) => (database, this.manageIds) = (db, manageIds);
 
         public async Task<int> CreateTable() => Buckets.Count > 0 ? 0 : 1;
 
@@ -186,12 +188,17 @@ namespace Ooorm.Data.Volatile
         {
             if (items.Length == 0)
                 return 0;
-            items[0].ID = currentId++;
+            if (manageIds)
+                items[0].ID = currentId++;
+            else if (items[0].ID == default)
+                throw new InvalidOperationException("When volatile repo does not manage ids all items must have ids set before writing");
             var bucket = GetOrAddBucket(items[0].ID);
             foreach (var item in items)
             {
-                if (item.ID != items[0].ID)
-                    item.ID = currentId++;
+                if (manageIds)
+                    item.ID = item.ID == items[0].ID ? items[0].ID : currentId++;
+                else if (item.ID == default)
+                    throw new InvalidOperationException("When volatile repo does not manage ids all items must have ids set before writing");
                 if (item.ID > bucket.IdRangeEnd)
                     bucket = GetOrAddBucket(item.ID);
                 await bucket.Data.Do(values => values[item.ID] = item);

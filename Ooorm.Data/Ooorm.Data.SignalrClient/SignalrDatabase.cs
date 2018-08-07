@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
-using Ooorm.Data.Volatile;
+﻿using Ooorm.Data.Volatile;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -9,154 +8,68 @@ namespace Ooorm.Data.SignalrClient
 {
     public class SignalrDatabase : IDatabase
     {
-        internal const string ClientRecieveItemAdded = nameof(ClientRecieveItemAdded);
+        private readonly string url;
 
         internal readonly VolatileDatabase LocalDb = new VolatileDatabase();
 
-        private readonly HubConnection hub;
+        private readonly Dictionary<Type, object> repositories = new Dictionary<Type, object>();
+
+        private async Task LoadRepository<T>() where T : IDbItem =>
+            repositories[typeof(T)] = new SignalrRepository<T>(url, () => this);
+
+        private async Task LoadRepository(Type t) =>
+            repositories[t] = Activator.CreateInstance(typeof(SignalrRepository<>).MakeGenericType(t), url, ((Func<SignalrDatabase>)(() => this)));
+
+        private ICrudRepository<T> Repos<T>() where T : IDbItem
+            => (ICrudRepository<T>)(repositories.ContainsKey(typeof(T)) ? repositories[typeof(T)] : throw new InvalidOperationException($"Repository for type {typeof(T).Name} has not been loaded"));
+
+        private ICrudRepository Repos(Type type)
+            => (ICrudRepository)(repositories.ContainsKey(type) ? repositories[type] : throw new InvalidOperationException($"Repository for type {type.Name} has not been loaded"));
 
         public Task CreateDatabase(string name, params Type[] tables) => throw new NotSupportedException();
         public Task DropDatabase(string name) => throw new NotSupportedException();
-        public Task CreateTable<T>() where T : IDbItem => throw new NotSupportedException();
-        public Task CreateTables(params Type[] tables) => throw new NotSupportedException();
 
-        public SignalrDatabase(string url)
+        public async Task CreateTable<T>() where T : IDbItem => LoadRepository<T>();
+
+        public async Task CreateTables(params Type[] tables)
         {
-            hub = new HubConnectionBuilder().WithUrl(url + "/ooorm").Build();
-            hub.On(ClientRecieveItemAdded, new Type[] { typeof(IDbItem) }, async (o) =>
-            {
-
-            });
+            foreach (var type in tables)
+                LoadRepository(type);
         }
 
-        private async Task recieveItemAdded(object[] items)
-        {
+        public SignalrDatabase(string url) => this.url = url + "/ooorm";
 
-        }
+        public async Task<int> Delete<T>(params int[] ids) where T : IDbItem =>
+            await Repos<T>().Delete(ids);
 
-        public Task<int> Delete<T>(params int[] ids) where T : IDbItem
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<int> Delete<T>(Expression<Func<T, bool>> predicate) where T : IDbItem =>
+            await Repos<T>().Delete(predicate);
 
-        public Task<int> Delete<T>(Expression<Func<T, bool>> predicate) where T : IDbItem
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<int> Delete<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem =>
+            await Repos<T>().Delete(predicate, param);
 
-        public Task<int> Delete<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<T> Dereference<T>(DbVal<T> value) where T : IDbItem =>
+            await Repos<T>().Read(value.ToId());
 
-        public Task<T> Dereference<T>(DbVal<T> value) where T : IDbItem
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<(bool exists, T value)> Dereference<T>(DbRef<T> value) where T : IDbItem =>
+            value.IsNull ? (false, default(T)) : (true, await Repos<T>().Read(value.ToId().Value));
 
-        public Task<(bool exists, T value)> Dereference<T>(DbRef<T> value) where T : IDbItem
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IEnumerable<T>> Read<T>() where T : IDbItem =>
+            await Repos<T>().Read();
 
-        public Task<IEnumerable<T>> Read<T>() where T : IDbItem
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<T> Read<T>(int id) where T : IDbItem =>
+            await Repos<T>().Read(id);
 
-        public Task<T> Read<T>(int id) where T : IDbItem
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IEnumerable<T>> Read<T>(Expression<Func<T, bool>> predicate) where T : IDbItem =>
+            await Repos<T>().Read(predicate);
 
-        public Task<IEnumerable<T>> Read<T>(Expression<Func<T, bool>> predicate) where T : IDbItem
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IEnumerable<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem =>
+            await Repos<T>().Read(predicate, param);
 
-        public Task<IEnumerable<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<int> Update<T>(params T[] values) where T : IDbItem =>
+            await Repos<T>().Update(values);
 
-        public Task<int> Update<T>(params T[] values) where T : IDbItem
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<int> Write<T>(params T[] values) where T : IDbItem
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class SignalrRepository<T> : ICrudRepository<T> where T : IDbItem
-    {
-        private readonly string url;
-        private readonly Func<SignalrDatabase> getDb;
-        private readonly HubConnection hub;
-        private readonly VolatileRepository<T> localRepo;
-
-        public SignalrRepository(string url, Func<SignalrDatabase> get)
-        {
-            this.url = url + "/" + typeof(T).Name;
-            getDb = get;
-            localRepo = new VolatileRepository<T>(() => getDb().LocalDb);
-            hub = new HubConnectionBuilder().WithUrl(url).Build();
-        }
-
-        public async Task<int> CreateTable() =>
-            await localRepo.CreateTable();
-
-
-        public async Task<int> Delete(params int[] ids)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<int> Delete(Expression<Func<T, bool>> predicate)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<int> Delete<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<int> DropTable()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<T>> Read()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<T> Read(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<T>> Read(Expression<Func<T, bool>> predicate)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<int> Update(params T[] values)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<int> Write(params T[] values)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<int> Write<T>(params T[] values) where T : IDbItem =>
+            await Repos<T>().Write(values);
     }
 }

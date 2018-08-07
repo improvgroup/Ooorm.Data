@@ -20,7 +20,7 @@ namespace Ooorm.Data
                 yield return reader.GetName(i);
         }
 
-        public virtual object ReadColumn(TDataReader reader, Column column, int index, ITypeProvider types)
+        public virtual object ReadColumn(TDataReader reader, Column column, int index, ITypeResolver types)
         {
             switch (types.DbType(column.PropertyType))
             {
