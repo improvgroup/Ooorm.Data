@@ -22,6 +22,8 @@ namespace Ooorm.Data
 
         public virtual object ReadColumn(TDataReader reader, Column column, int index, ITypeResolver types)
         {
+            if (reader.IsDBNull(index))
+                return null;
             switch (types.DbType(column.PropertyType))
             {
                 case DbType.Boolean:
@@ -68,7 +70,9 @@ namespace Ooorm.Data
 
         protected virtual object ReadStringField(TDataReader reader, Column column, int index)
         {
-            var data = reader.GetString(index);
+            string data = null;
+            if (!reader.IsDBNull(index))
+                data = reader.GetString(index);
             if (column.PropertyType == typeof(string))
                 return data;
             else if (column.PropertyType == typeof(char[]))

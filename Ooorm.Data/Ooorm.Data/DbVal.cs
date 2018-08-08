@@ -13,7 +13,7 @@ namespace Ooorm.Data
 
         public static implicit operator int(DbVal<T> v) => v.value;
 
-        public static implicit operator DbVal<T>(DbRef<T> v) => v.value.HasValue ? new DbRef<T>(v.value.Value, v.getDb) : throw new NullReferenceException("Cannot cast null id to non null id");
+        public static implicit operator DbVal<T>(DbRef<T> v) => v.value.HasValue ? new DbVal<T>(v.value.Value, v.getDb) : throw new NullReferenceException("Cannot cast null id to non null id");
 
         public int ToId() => value;
 

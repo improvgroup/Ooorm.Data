@@ -57,7 +57,7 @@ namespace Ooorm.Data
             var last = matches.First();
             foreach (var exp in matches.Skip(1))
                 last = Expression.AndAlso(last, exp);
-            return (Expression<Func<T, T, bool>>)Expression.Lambda(last, row);
+            return (Expression<Func<T, T, bool>>)Expression.Lambda(last, row, p);
         }
 
         private static IEnumerable<BinaryExpression> MatchExpressions<T>(this T item, ParameterExpression row, ParameterExpression p) where T : IDbItem

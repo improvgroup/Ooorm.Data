@@ -20,8 +20,8 @@ namespace Ooorm.Data.SignalrClient
         private async Task LoadRepository(Type t) =>
             repositories[t] = Activator.CreateInstance(typeof(SignalrRepository<>).MakeGenericType(t), url, ((Func<SignalrDatabase>)(() => this)));
 
-        private ICrudRepository<T> Repos<T>() where T : IDbItem
-            => (ICrudRepository<T>)(repositories.ContainsKey(typeof(T)) ? repositories[typeof(T)] : throw new InvalidOperationException($"Repository for type {typeof(T).Name} has not been loaded"));
+        private SignalrRepository<T> Repos<T>() where T : IDbItem
+            => (SignalrRepository<T>)(repositories.ContainsKey(typeof(T)) ? repositories[typeof(T)] : throw new InvalidOperationException($"Repository for type {typeof(T).Name} has not been loaded"));
 
         private ICrudRepository Repos(Type type)
             => (ICrudRepository)(repositories.ContainsKey(type) ? repositories[type] : throw new InvalidOperationException($"Repository for type {type.Name} has not been loaded"));
@@ -29,12 +29,18 @@ namespace Ooorm.Data.SignalrClient
         public Task CreateDatabase(string name, params Type[] tables) => throw new NotSupportedException();
         public Task DropDatabase(string name) => throw new NotSupportedException();
 
-        public async Task CreateTable<T>() where T : IDbItem => LoadRepository<T>();
+        public async Task LoadTable<T>() where T : IDbItem
+        {
+            await LoadRepository<T>();
+            await Repos<T>().WaitForLoad();
+        }
+
+        public async Task CreateTable<T>() where T : IDbItem => await LoadRepository<T>();
 
         public async Task CreateTables(params Type[] tables)
         {
             foreach (var type in tables)
-                LoadRepository(type);
+                await LoadRepository(type);
         }
 
         public SignalrDatabase(string url) => this.url = url + "/ooorm";

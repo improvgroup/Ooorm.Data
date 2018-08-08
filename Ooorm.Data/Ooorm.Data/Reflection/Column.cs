@@ -32,9 +32,9 @@ namespace Ooorm.Data.Reflection
             }
             else
             {
-                Debug.Assert(model.GetType().IsEquivalentTo(ModelType), $"Type of {nameof(model)} passed to {nameof(SetOn)} must match value of {nameof(ModelType)}.");
-                if (!(PropertyType.IsGenericType && PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>) && PropertyType == typeof(Nullable<>).MakeGenericType(value.GetType())))
-                    Debug.Assert(value.GetType().IsEquivalentTo(PropertyType), $"Type of {nameof(value)} passed to {nameof(SetOn)} must match value of {nameof(PropertyType)}.");
+                //Debug.Assert(model.GetType().IsEquivalentTo(ModelType), $"Type of {nameof(model)} passed to {nameof(SetOn)} must match value of {nameof(ModelType)}.");
+                //if (!(PropertyType.IsGenericType && PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>) && PropertyType == typeof(Nullable<>).MakeGenericType(value.GetType())))
+                //    Debug.Assert(value.GetType().IsEquivalentTo(PropertyType), $"Type of {nameof(value)} passed to {nameof(SetOn)} must match value of {nameof(PropertyType)}.");
                 setter(model, value);
             }
         }
@@ -42,11 +42,8 @@ namespace Ooorm.Data.Reflection
         public bool IsNullable(Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
         private readonly Func<object, object> getter;
-        public virtual object GetFrom(object model)
-        {
-            Debug.Assert(model.GetType().IsEquivalentTo(ModelType), $"Type of {nameof(model)} passed to {nameof(GetFrom)} must match value of {nameof(ModelType)}.");
-            return getter(model);
-        }
+        public virtual object GetFrom(object model) => getter(model);
+
 
         public bool IsDefaultOn(object model)
         {
@@ -80,11 +77,8 @@ namespace Ooorm.Data.Reflection
         }
 
         private readonly Action<TModel, object> setter;
-        public void SetOn(TModel model, object value)
-        {
-            Debug.Assert(value.GetType().IsEquivalentTo(PropertyType), $"Type of {nameof(value)} passed to {nameof(SetOn)} must match value of {nameof(PropertyType)}.");
-            setter(model, value);
-        }
+        public void SetOn(TModel model, object value) => setter(model, value);
+
 
         private readonly Func<TModel, object> getter;
         public object GetFrom(TModel model) => getter(model);

@@ -27,6 +27,7 @@ namespace Ooorm.Data.SignalrClient
 
         private bool loaded = false;
         private readonly ManualResetEvent loadedTrigger = new ManualResetEvent(false);
+        public async Task WaitForLoad() => await Task.Run(() => loadedTrigger.WaitOne());
 
         private readonly ManualResetEvent recieveRepoIdTrigger = new ManualResetEvent(false);
         private Guid _self;
