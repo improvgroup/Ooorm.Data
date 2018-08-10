@@ -39,7 +39,7 @@ namespace Ooorm.Data.SqlServer
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate), null)).ToList());
 
         public async Task<IEnumerable<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate), (predicate.Parameters[1].Name, param))).ToList());
+            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate, param), (predicate.Parameters[1].Name, param))).ToList());
 
         public async Task<int> Update(params T[] values)
             => await ConnectionSource.FromConnectionAsync(async c => {
@@ -67,7 +67,7 @@ namespace Ooorm.Data.SqlServer
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate), null)));
 
         public async Task<int> Delete<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate), param)));
+            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate, param), param)));
 
         public async Task<int> CreateTable()
              => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.CreateTableSql(), null)));

@@ -25,30 +25,25 @@ namespace Ooorm.Data.SqlServer
             OpenConnections = 0;
         }
 
-        public override void WithConnection(Action<System.Data.SqlClient.SqlConnection> action)
-        {
+        public override void WithConnection(Action<System.Data.SqlClient.SqlConnection> action) =>
             action(Connection.Result);
-        }
 
-        public override async Task WithConnectionAsync(Action<System.Data.SqlClient.SqlConnection> action)
-        {
+
+        public override async Task WithConnectionAsync(Action<System.Data.SqlClient.SqlConnection> action) =>
             action(await Connection);
-        }
 
-        public override async Task WithConnectionAsync(Func<System.Data.SqlClient.SqlConnection, Task> action)
-        {
+
+        public override async Task WithConnectionAsync(Func<System.Data.SqlClient.SqlConnection, Task> action) =>
             await action(await Connection);
-        }
 
-        public override T FromConnection<T>(Func<System.Data.SqlClient.SqlConnection, T> action)
-        {
-            return action(Connection.Result);
-        }
 
-        public override async Task<T> FromConnectionAsync<T>(Func<System.Data.SqlClient.SqlConnection, Task<T>> action)
-        {
-            return await action(await Connection);
-        }
+        public override T FromConnection<T>(Func<System.Data.SqlClient.SqlConnection, T> action) =>
+            action(Connection.Result);
+
+
+        public override async Task<T> FromConnectionAsync<T>(Func<System.Data.SqlClient.SqlConnection, Task<T>> action) =>
+            await action(await Connection);
+
     }
 
 }

@@ -23,13 +23,9 @@ namespace Ooorm.Data.SqlServer
             command.Parameters.AddWithValue(key, value);
         }
 
-        public override SqlCommand GetCommand(string sql, System.Data.SqlClient.SqlConnection connection)
-        {
-            return new SqlCommand(sql, connection)
-            {
-                CommandType = CommandType.Text
-            };
-        }
+        public override SqlCommand GetCommand(string sql, System.Data.SqlClient.SqlConnection connection) =>
+            new SqlCommand(sql, connection) { CommandType = CommandType.Text };
+
 
         public async Task<int> ExecuteAsync(System.Data.SqlClient.SqlConnection connection, string sql, object parameter)
         {
@@ -71,8 +67,8 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
-        protected async Task<IEnumerable<T>> ExecuteReaderAsync<T>(SqlCommand command) where T : IDbItem
-            => await Task.Run(() => ExecuteReader<T>(command));
+        protected async Task<IEnumerable<T>> ExecuteReaderAsync<T>(SqlCommand command) where T : IDbItem =>
+            await Task.Run(() => ExecuteReader<T>(command));
 
         protected override IEnumerable<T> ExecuteReader<T>(SqlCommand command)
         {

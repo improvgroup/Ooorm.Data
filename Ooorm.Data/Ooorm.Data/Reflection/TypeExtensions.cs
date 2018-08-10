@@ -47,7 +47,7 @@ namespace Ooorm.Data.Reflection
                     .Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem.ID))) )
                     .Select(p => new Column<T>(p));
 
-        internal static IEnumerable<Column> GetColumns(this Type type, bool exceptId = false)
+        public static IEnumerable<Column> GetColumns(this Type type, bool exceptId = false)
         {
             var props = type.GetProperties(PROPS).ToArray();
             var fields = props.Where(p => !p.HasAttribute<DbIgnoreAttribute>()).ToArray();

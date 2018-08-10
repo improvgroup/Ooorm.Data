@@ -50,8 +50,8 @@ END;";
         public string DeleteSql(Expression<Func<T, bool>> predicate)
             => DELETE_PREFIX.Append(WhereClause(predicate)).Append(";").ToString();
 
-        public string DeleteSql<TParam>(Expression<Func<T, TParam, bool>> predicate)
-            => DELETE_PREFIX.Append(WhereClause(predicate)).Append(";").ToString();
+        public string DeleteSql<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
+            => DELETE_PREFIX.Append(WhereClause(predicate, param)).Append(";").ToString();
 
         public string WriteSql()
             => WRITE_SQL;
@@ -65,8 +65,8 @@ END;";
         public string ReadSql(Expression<Func<T, bool>> predicate)
             => READ_PREFIX.Append(WhereClause(predicate)).Append(";").ToString();
 
-        public string ReadSql<TParam>(Expression<Func<T, TParam, bool>> predicate)
-            => READ_PREFIX.Append(WhereClause(predicate)).Append(";").ToString();
+        public string ReadSql<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
+            => READ_PREFIX.Append(WhereClause(predicate, param)).Append(";").ToString();
 
         public string ReadSqlById()
             => READ_WHERE_ID;
@@ -74,11 +74,11 @@ END;";
         public string UpdateSql<TParam>()
         {
             var paramNames = new HashSet<string>(typeof(TParam).GetDataProperties().Select(p => p.PropertyName));
-            return UPDATE_PREFIX.Append(string.Join(", ", NON_ID_COLUMNS.Where(c => paramNames.Contains(c.ColumnName)).Select(c => "[" + c.ColumnName + "] = @" + c.ColumnName))).ToString();
+            return UPDATE_PREFIX.Append(string.Join(", ", NON_ID_COLUMNS.Where(c => paramNames.Contains(c.ColumnName)).Select(c => "[" + c.ColumnName + "] = @" + c.ColumnName))).Append(" WHERE [ID] = @ID").ToString();
         }
 
-        public string WhereClause<TParam>(Expression<Func<T, TParam, bool>> predicate)
-            => "WHERE ".Append(predicate.ToSql()).ToString();
+        public string WhereClause<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
+            => "WHERE ".Append(predicate.ToSql(param)).ToString();
 
         public string WhereClause(Expression<Func<T, bool>> predicate)
             => "WHERE ".Append(predicate.ToSql()).ToString();

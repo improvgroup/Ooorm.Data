@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ooorm.Data.Reflection;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -15,7 +16,7 @@ namespace Ooorm.Data
         /// <summary>
         /// Default implementation of a predicate (with query parameter) to sql transpiler
         /// </summary>
-        internal static string ToSql<T, TParam>(this Expression<Func<T, TParam, bool>> predicate) => Where(predicate.Body, predicate.Parameters.Last().Name);
+        internal static string ToSql<T, TParam>(this Expression<Func<T, TParam, bool>> predicate, TParam param) => Where(predicate.Body, predicate.Parameters.Last().Name, param);
 
         private static string Operand(ExpressionType type)
         {
@@ -50,14 +51,14 @@ namespace Ooorm.Data
             }
         }
 
-        internal static string Where(Expression exp, string paramName = null)
+        internal static string Where(Expression exp, string paramName = null, object param = null)
         {
             var builder = new StringBuilder();
-            BuildWhere(exp, builder, paramName);
+            BuildWhere(exp, builder, paramName, param);
             return builder.ToString();
         }
 
-        internal static void BuildWhere(Expression exp, StringBuilder builder, string paramName = null)
+        internal static void BuildWhere(Expression exp, StringBuilder builder, string paramName, object param)
         {
             if (exp is ConstantExpression constant)
             {
@@ -83,11 +84,11 @@ namespace Ooorm.Data
             {
                 string operand = Operand(unexp.NodeType);
                 if (string.IsNullOrEmpty(operand))
-                    BuildWhere(unexp.Operand, builder, paramName);
+                    BuildWhere(unexp.Operand, builder, paramName, param);
                 else
                 {
                     builder.Append($"{operand} (");
-                    BuildWhere(unexp.Operand, builder, paramName);
+                    BuildWhere(unexp.Operand, builder, paramName, param);
                     builder.Append(")");
                 }
             }
@@ -99,13 +100,13 @@ namespace Ooorm.Data
                     {
 
                         builder.Append("(");
-                        BuildWhere(binexp.Left, builder, paramName);
+                        BuildWhere(binexp.Left, builder, paramName, param);
                         builder.Append(" IS NULL)");
                     }
                     else if (binexp.NodeType == ExpressionType.NotEqual)
                     {
                         builder.Append("(");
-                        BuildWhere(binexp.Left, builder, paramName);
+                        BuildWhere(binexp.Left, builder, paramName, param);
                         builder.Append(" IS NOT NULL)");
                     }
                     else
@@ -114,17 +115,38 @@ namespace Ooorm.Data
                 else
                 {
                     builder.Append($"(");
-                    BuildWhere(binexp.Left, builder, paramName);
-                    builder.Append($" {Operand(binexp.NodeType)} ");
-                    BuildWhere(binexp.Right, builder, paramName);
-                    builder.Append(")");
+                    BuildWhere(binexp.Left, builder, paramName, param);
+                    if (param != null && binexp.Right is MemberExpression poxaiuvgf && poxaiuvgf.Expression.ToString() == paramName)
+                    {
+                        var columns = param.GetType().GetColumns().Select(c => c.GetFrom(param)).ToArray();
+                    }
+                    if (param != null
+                        && binexp.Right is MemberExpression paramexp)
+                    {
+                        if (paramexp.Expression.ToString() == paramName && param.GetType().GetColumns().Single(c => c.PropertyName == paramexp.Member.Name).GetFrom(param) == null)
+                        {
+                            builder.Append(" IS NULL)");
+                        }
+                        else
+                        {
+                            builder.Append($" {Operand(binexp.NodeType)} ");
+                            BuildWhere(binexp.Right, builder, paramName, param);
+                            builder.Append(")");
+                        }
+                    }
+                    else
+                    {
+                        builder.Append($" {Operand(binexp.NodeType)} ");
+                        BuildWhere(binexp.Right, builder, paramName, param);
+                        builder.Append(")");
+                    }
                 }
             }
             else if (exp is TypeBinaryExpression typeexp)
             {
                 if (typeexp.TypeOperand == typeof(DBNull))
                     throw new NotSupportedException($"Type operands are only supported for dbnull checking");
-                BuildWhere(typeexp.Expression, builder, paramName);
+                BuildWhere(typeexp.Expression, builder, paramName, param);
                 builder.Append(" IS NULL");
             }
             else if (exp is MemberExpression member)
