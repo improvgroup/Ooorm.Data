@@ -56,7 +56,11 @@ namespace Ooorm.Data.SqlServer.Tests
         [Fact]
         public void SupportFieldComparisonToParameterizedValue()
         {
-            string clause = provider.WhereClause<DbModel>((m, p) => m.Key == p.Key);
+            string clause = provider.WhereClause<DbModel>((m, p) => m.Key == p.Key, new DbModel());
+
+            clause.Should().Be($"WHERE ({KEY} IS NULL)");
+
+            clause = provider.WhereClause<DbModel>((m, p) => m.Key == p.Key, new DbModel { Key = "Hello World" });
 
             clause.Should().Be($"WHERE ({KEY} = @{nameof(DbModel.Key)})");
         }

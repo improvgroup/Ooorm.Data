@@ -29,7 +29,7 @@ namespace Ooorm.Data.Signalr.Tests
             Thread.Sleep(3000);
         }
 
-        [Fact]
+        //[Fact]
         public async Task CanAddAndReadItems()
         {
             var db = new SignalrDatabase(url);

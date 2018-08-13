@@ -15,7 +15,7 @@ namespace Ooorm.Data.QueryProviders
             throw new NotImplementedException();
         }
 
-        public string DeleteSql<TParam>(Expression<Func<T, TParam, bool>> predicate)
+        public string DeleteSql<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
         {
             throw new NotImplementedException();
         }
@@ -40,7 +40,7 @@ namespace Ooorm.Data.QueryProviders
             throw new NotImplementedException();
         }
 
-        public string ReadSql<TParam>(Expression<Func<T, TParam, bool>> predicate)
+        public string ReadSql<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
         {
             throw new NotImplementedException();
         }
@@ -55,7 +55,7 @@ namespace Ooorm.Data.QueryProviders
             throw new NotImplementedException();
         }
 
-        public string WhereClause<TParam>(Expression<Func<T, TParam, bool>> predicate)
+        public string WhereClause<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
         {
             throw new NotImplementedException();
         }
