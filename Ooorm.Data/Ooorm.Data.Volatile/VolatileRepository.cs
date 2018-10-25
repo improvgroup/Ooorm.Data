@@ -35,8 +35,7 @@ namespace Ooorm.Data.Volatile
 
         protected Bucket GetOrAddBucket(int id)
         {
-            Bucket bucket;
-            if (TryGetBucket(id, out bucket)) ;
+            if (TryGetBucket(id, out Bucket bucket));
             else
             {
                 int start = id / BUCKET_SIZE;
@@ -90,18 +89,24 @@ namespace Ooorm.Data.Volatile
             return count;
         }
 
-        public async Task<int> Delete(params int[] ids)
+        public async Task<int> Delete(params T[] values) => await Delete(values.Select(v => v.ID));
+
+        private async Task<int> Delete(IEnumerable<int> ids)
         {
+            int count = 0;
             await Task.Run(async () =>
             {
                 foreach (var kvp in GetBuckets(ids))
                     await kvp.Key.Data.Do(d =>
                     {
                         foreach (var i in kvp.Value)
+                        {
+                            count++;
                             d.Remove(i);
+                        }
                     });
             });
-            return ids.Length;
+            return count;
         }
 
         public async Task<int> Delete(Expression<Func<T, bool>> predicate)

@@ -33,7 +33,11 @@ namespace Ooorm.Data.SqlServer
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(), null)).ToList());
 
         public async Task<T> Read(int id)
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSqlById(), new { Id = id })).Single());
+            => await ConnectionSource.FromConnectionAsync(async c =>
+            {
+                var results = await dao.ReadAsync<T>(c, queries.ReadSqlById(), new { Id = id });
+                return results.Single();
+            });
 
         public async Task<IEnumerable<T>> Read(Expression<Func<T, bool>> predicate)
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate), null)).ToList());
@@ -52,11 +56,15 @@ namespace Ooorm.Data.SqlServer
                 return sum;
             });
 
-        public async Task<int> Delete(params int[] ids)
+        public async Task<int> Delete(params T[] values)
+            => await DeleteById(values.Select(v => v.ID));
+
+
+        private async Task<int> DeleteById(IEnumerable<int> ids)
             => await ConnectionSource.FromConnectionAsync(async c => {
-                var list = new List<Task<int>>(ids.Length);
+                var list = new List<Task<int>>();
                 foreach (var id in ids)
-                    list.Add(dao.ExecuteAsync(c, queries.WriteSql(), new { Id = id }));
+                    list.Add(dao.ExecuteAsync(c, queries.DeleteSqlById(), new { Id = id }));
                 int sum = 0;
                 foreach (var task in list)
                     sum += await task;

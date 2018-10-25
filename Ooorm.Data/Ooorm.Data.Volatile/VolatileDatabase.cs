@@ -33,8 +33,8 @@ namespace Ooorm.Data.Volatile
         public async Task<int> Update<T>(params T[] values) where T : IDbItem
             => await Repos<T>().Update(values);
 
-        public async Task<int> Delete<T>(params int[] ids) where T : IDbItem
-            => await Repos<T>().Delete(ids);
+        public async Task<int> Delete<T>(params T[] values) where T : IDbItem
+            => await Repos<T>().Delete(values);
 
         public async Task<int> Delete<T>(Expression<Func<T, bool>> predicate) where T : IDbItem
             => await Repos<T>().Delete(predicate);

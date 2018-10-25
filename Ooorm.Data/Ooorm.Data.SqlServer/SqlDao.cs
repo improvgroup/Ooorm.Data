@@ -26,14 +26,14 @@ namespace Ooorm.Data.SqlServer
         public override SqlCommand GetCommand(string sql, System.Data.SqlClient.SqlConnection connection) =>
             new SqlCommand(sql, connection) { CommandType = CommandType.Text };
 
-
         public async Task<int> ExecuteAsync(System.Data.SqlClient.SqlConnection connection, string sql, object parameter)
         {
             using (var command = GetCommand(sql, connection))
             {
                 command.CommandText = sql;
                 AddParameters(command, sql, parameter);
-                return await command.ExecuteNonQueryAsync();
+                var result = await command.ExecuteNonQueryAsync();
+                return result;
             }
         }
 

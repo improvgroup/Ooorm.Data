@@ -9,6 +9,8 @@ namespace Ooorm.Data
 
         internal readonly int value;
 
+        public bool HasValue => true;
+
         public DbVal(int v, Func<IDatabase> db) => (value, getDb) = (v, db);
 
         public static implicit operator int(DbVal<T> v) => v.value;
@@ -18,6 +20,8 @@ namespace Ooorm.Data
         public int ToId() => value;
 
         public async Task<T> Get() => await getDb()?.Read<T>(value);
+
+        public async Task<object> GetObject() => await Get();
 
         public static bool operator ==(DbVal<T> a, DbVal<T> b) => a.value == b.value;
         public static bool operator !=(DbVal<T> a, DbVal<T> b) => a.value != b.value;

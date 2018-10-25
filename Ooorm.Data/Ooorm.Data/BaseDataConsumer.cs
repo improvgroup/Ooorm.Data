@@ -7,6 +7,8 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Data;
+using System.Linq;
+using System.Reflection;
 
 namespace Ooorm.Data
 {
@@ -19,6 +21,8 @@ namespace Ooorm.Data
             for (int i = 0; i < reader.FieldCount; i++)
                 yield return reader.GetName(i);
         }
+
+        private static MethodInfo dateTimeOffsetMethodCache;
 
         public virtual object ReadColumn(TDataReader reader, Column column, int index, ITypeResolver types)
         {
@@ -61,6 +65,22 @@ namespace Ooorm.Data
                 case DbType.DateTime:
                 case DbType.DateTime2:
                     return reader.IsDBNull(index) ? default : reader.GetDateTime(index);
+                case DbType.DateTimeOffset:
+                    if (dateTimeOffsetMethodCache == null)
+                    {
+                        dateTimeOffsetMethodCache =
+                            reader.GetType()
+                                  .GetMethods()
+                                  .Where(m => m.ReturnType == typeof(DateTimeOffset))
+                                  .FirstOrDefault(m =>
+                                  {
+                                      var p = m.GetParameters();
+                                      if (p.Count() == 1 && p.First().ParameterType == typeof(int))
+                                          return true;
+                                      return false;
+                                  });                                                   
+                    }
+                    return (DateTimeOffset)dateTimeOffsetMethodCache.Invoke(reader, new object[] { index });
                 case DbType.Binary:
                     return ReadBinaryField(reader, column, index);
                 default:

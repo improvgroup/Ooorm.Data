@@ -12,6 +12,8 @@ namespace Ooorm.Data
 
         public bool IsNull => !value.HasValue;
 
+        public bool HasValue => value.HasValue;
+
         public DbRef(int? v, Func<IDatabase> db) => (value, getDb) = (v, db);
 
         public static implicit operator int? (DbRef<T> v) => v.value;
@@ -21,6 +23,8 @@ namespace Ooorm.Data
         public int? ToId() => value;
 
         public async Task<T> Get() => value.HasValue ? await getDb()?.Read<T>(value.Value) : default;
+
+        public async Task<object> GetObject() => await Get();
 
         public static bool operator ==(DbRef<T> a, DbRef<T> b) => a.value == b.value;
         public static bool operator !=(DbRef<T> a, DbRef<T> b) => a.value != b.value;
@@ -39,5 +43,6 @@ namespace Ooorm.Data
 
         public override int GetHashCode() => -1584136870 + EqualityComparer<int?>.Default.GetHashCode(value);
 
+        
     }
 }

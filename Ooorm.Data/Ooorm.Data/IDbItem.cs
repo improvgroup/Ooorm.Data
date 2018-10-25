@@ -35,7 +35,7 @@ namespace Ooorm.Data
         /// </summary>
         /// <returns>Number of deleted records</returns>
         public static async Task<int> DeleteMatchingFrom<T>(this T item, IDatabase db = null) where T : IDbItem
-            => item.ID != default ? await db.Delete<T>(item.ID) : await db.Delete(item.MatchingPredicate(), item);
+            => item.ID != default ? await db.Delete(item) : await db.Delete(item.MatchingPredicate(), item);
 
         /// <summary>
         /// Reads all records from the db that match each non-default field in item
