@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using System.Xml;
@@ -164,6 +165,8 @@ namespace Ooorm.Data
                         return $"nchar({fixedLengthString.Length})";
                     else if (column.Info.TryGetAttribute(out MaxLengthAttribute maxLengthString))
                         return $"nvarchar({maxLengthString.Length})";
+                    else if (column.Info.TryGetAttribute(out StringLengthAttribute stringLengthString))
+                        return $"nvarchar({stringLengthString.MaximumLength})";
                     else
                         return "nvarchar(max)";
                 case System.Data.DbType.Guid:

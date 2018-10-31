@@ -18,7 +18,7 @@ namespace Ooorm.Data
         /// Creates a table for the specified type if it doesn't exist
         /// </summary>
         /// <param name="type">A CLR Type implementing IDbItem</param>
-        public static async Task CreateTableIn(this Type type, IDatabase db)
+        public static async Task CreateTableIn(this Type type, IDatabaseManagementSystem db)
             => await db.CreateTables(type);
 
         /// <summary>

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data.SqlServer
 {
-    public class SqlDatabase : IDatabase
+    public class SqlDatabase : IDatabaseManagementSystem
     {
         private readonly SqlServerQueryProvider queries = new SqlServerQueryProvider();
 
@@ -46,6 +46,9 @@ namespace Ooorm.Data.SqlServer
 
         public async Task<IEnumerable<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem
             => await Repos<T>().Read(predicate, param);
+
+        public async Task<IEnumerable<object>> Read(Type type)
+            => await Repos(type).ReadUntyped();
 
         public async Task<int> Update<T>(params T[] values) where T : IDbItem
             => await Repos<T>().Update(values);
@@ -95,5 +98,7 @@ namespace Ooorm.Data.SqlServer
                         await Repos(type).CreateTable();
                 });
         }
+
+
     }
 }

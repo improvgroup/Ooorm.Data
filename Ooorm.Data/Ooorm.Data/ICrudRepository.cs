@@ -9,6 +9,7 @@ namespace Ooorm.Data
     {
         Task<int> CreateTable();
         Task<int> DropTable();
+        Task<IEnumerable<object>> ReadUntyped();
     }
 
     public interface ICrudRepository<T> : ICrudRepository where T : IDbItem

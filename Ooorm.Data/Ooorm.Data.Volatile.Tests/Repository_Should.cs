@@ -51,5 +51,21 @@ namespace Ooorm.Data.Volatile.Tests
 
             results.Should().BeEquivalentTo(expected);
         }
+
+        [Fact]
+        public async Task DeleteItemByRef()
+        {
+            var repo = new VolatileRepository<Item>(() => null);
+
+            var items = Enumerable.Range(0, 1000).Select(i => new Item { Value = Convert.ToString(i, 2) }).ToArray();
+
+            await repo.Write(items);
+
+            var to_remove = (await repo.Read(i => i.Value.Contains("101"))).First();
+
+            await repo.Delete(to_remove);
+
+            (await repo.Read(i => i.Value.Contains("101"))).Should().NotContain(i => i.ID == to_remove.ID);
+        }
     }
 }

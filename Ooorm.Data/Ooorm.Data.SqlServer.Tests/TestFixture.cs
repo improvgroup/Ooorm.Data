@@ -14,7 +14,7 @@ namespace Ooorm.Data.SqlServer.Tests
         // https://docs.microsoft.com/en-us/sql/linux/quickstart-install-connect-docker?view=sql-server-linux-2017
         public static string ConnectionString(string db) => $"Server=localhost;Database={db};User Id=SA;Password=vugn14097hgv4716;";
 
-        public static async Task WithTempDb(Func<IDatabase, Task> action, [CallerMemberName] string name = null)
+        public static async Task WithTempDb(Func<IDatabaseManagementSystem, Task> action, [CallerMemberName] string name = null)
         {
             string dbName = "OoormSqlTests" + name + Guid.NewGuid().ToString().Substring(0, 8);
             var master = new SqlDatabase(SqlConnection.CreateShared(ConnectionString("master")));

@@ -43,6 +43,6 @@ namespace Ooorm.Data
 
         public override int GetHashCode() => -1584136870 + EqualityComparer<int?>.Default.GetHashCode(value);
 
-        
+
     }
 }

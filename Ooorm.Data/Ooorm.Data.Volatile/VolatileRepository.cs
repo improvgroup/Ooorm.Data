@@ -157,6 +157,8 @@ namespace Ooorm.Data.Volatile
             return results;
         }
 
+        public async Task<IEnumerable<object>> ReadUntyped() => (await Read()).Select(i => (object)i);
+
         public async Task<T> Read(int id)
         {
             T result = default;

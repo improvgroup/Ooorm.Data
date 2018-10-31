@@ -5,32 +5,29 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data
 {
-    public interface IDatabase : ISchema
+    public interface IReadable
+    {
+        Task<IEnumerable<T>> Read<T>() where T : IDbItem;
+
+        Task<IEnumerable<object>> Read(Type type);
+
+        Task<T> Read<T>(int id) where T : IDbItem;
+
+        Task<IEnumerable<T>> Read<T>(Expression<Func<T, bool>> predicate) where T : IDbItem;
+
+        Task<IEnumerable<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem;
+
+        Task<T> Dereference<T>(DbVal<T> value) where T : IDbItem;
+
+        Task<(bool exists, T value)> Dereference<T>(DbRef<T> value) where T : IDbItem;
+    }
+
+    public interface IWritable
     {
         /// <summary>
         /// Write values to the database
         /// </summary>
         Task<int> Write<T>(params T[] values) where T : IDbItem;
-
-        /// <summary>
-        /// Read all values from a table
-        /// </summary>
-        Task<IEnumerable<T>> Read<T>() where T : IDbItem;
-
-        /// <summary>
-        /// Read an item with the specified ID
-        /// </summary>
-        Task<T> Read<T>(int id) where T : IDbItem;
-
-        /// <summary>
-        /// Read items that amtch the parameterless predicate
-        /// </summary>
-        Task<IEnumerable<T>> Read<T>(Expression<Func<T, bool>> predicate) where T : IDbItem;
-
-        /// <summary>
-        /// Read items that match the predicate given the specified parameter
-        /// </summary>
-        Task<IEnumerable<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem;
 
         /// <summary>
         /// Update the values of existing items
@@ -56,8 +53,16 @@ namespace Ooorm.Data
         /// <param name="param"></param>
         /// <returns></returns>
         Task<int> Delete<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem;
+    }
 
-        Task<T> Dereference<T>(DbVal<T> value) where T : IDbItem;
-        Task<(bool exists, T value)> Dereference<T>(DbRef<T> value) where T : IDbItem;
+    public interface IDatabaseManagementSystem : ISchema, IDatabase
+    {
+
+    }
+
+
+    public interface IDatabase : IReadable, IWritable
+    {
+
     }
 }

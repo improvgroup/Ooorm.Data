@@ -32,6 +32,10 @@ namespace Ooorm.Data.SqlServer
         public async Task<IEnumerable<T>> Read()
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(), null)).ToList());
 
+        public async Task<IEnumerable<object>> ReadUntyped()
+            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(), null)).Select(i => (object)i).ToList());
+
+
         public async Task<T> Read(int id)
             => await ConnectionSource.FromConnectionAsync(async c =>
             {
@@ -44,6 +48,8 @@ namespace Ooorm.Data.SqlServer
 
         public async Task<IEnumerable<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate, param), (predicate.Parameters[1].Name, param))).ToList());
+
+
 
         public async Task<int> Update(params T[] values)
             => await ConnectionSource.FromConnectionAsync(async c => {

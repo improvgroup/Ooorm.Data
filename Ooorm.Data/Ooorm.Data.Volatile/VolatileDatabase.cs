@@ -48,13 +48,8 @@ namespace Ooorm.Data.Volatile
         public async Task<(bool exists, T value)> Dereference<T>(DbRef<T> value) where T : IDbItem
             => (!value.IsNull, value.IsNull ? default : await Repos<T>().Read(value.ToId().Value));
 
-        public async Task DropDatabase(string name) { }
-
-        public async Task CreateDatabase(string name, params Type[] tables) { }
-
-        public async Task CreateTable<T>() where T : IDbItem { }
-
-        public async Task CreateTables(params Type[] tables) { }
+        public async Task<IEnumerable<object>> Read(Type type)
+            => await Repos(type).ReadUntyped();
 
         public VolatileDatabase()
         {
