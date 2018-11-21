@@ -6,31 +6,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Ooorm.Data.QueryProviders;
 
-namespace Ooorm.Data.SqlServer
-{
-    internal class SqlServerQueryProvider : IDatabaseManagementQueryProvider
-    {
-        public string DatabaseSql(string name)
-            => $"USE MASTER; IF db_id('{name}') is null CREATE DATABASE [{name}];";
-
-        public string DropDatabaseSql(string name)
-            => $@"USE[master];
-IF db_id('{name}') is not null
-BEGIN
-DECLARE @kill varchar(8000) = '';
-SELECT @kill = @kill + 'kill ' + CONVERT(varchar(5), session_id) + ';'
-FROM sys.dm_exec_sessions
-WHERE database_id = db_id('{name}')
-EXEC(@kill);
-EXEC('DROP DATABASE [{name}]');
-END;";
-    }
-
-    internal class SqlServerQueryProvider<T> : SqlServerQueryProvider, IQueryProvider<T> where T : IDbItem
+namespace Ooorm.Data.Sqlite
+{    
+    internal class SqliteQueryProvider<T> : IQueryProvider<T> where T : IDbItem
     {
         protected readonly IExtendableTypeResolver types;
 
-        public SqlServerQueryProvider(Func<IDatabase> db) => types = new SqlServerTypeProvider(db);
+        public SqliteQueryProvider(Func<IDatabase> db) => types = new SqliteTypeProvider(db);
 
         protected static readonly Column[] COLUMNS = typeof(T).GetColumns().ToArray();
         protected static readonly Column[] NON_ID_COLUMNS = typeof(T).GetColumns(exceptId: true).ToArray();
@@ -40,9 +22,9 @@ END;";
         protected static readonly string DELETE_PREFIX = $"DELETE FROM {TABLE} ";
         protected static readonly string DELETE_WHERE_ID = DELETE_PREFIX + WHERE_ID;
         protected static readonly string UPDATE_PREFIX = $"UPDATE {TABLE} SET ";
-        protected static readonly string READ_PREFIX = $"SELECT {string.Join(", ", COLUMNS.Select(c => $"[{c.ColumnName}]"))} FROM {TABLE} ";
+        protected static readonly string READ_PREFIX = $"SELECT ROWID as ID, {string.Join(", ", NON_ID_COLUMNS.Select(c => $"[{c.ColumnName}]"))} FROM {TABLE} ";
         protected static readonly string READ_WHERE_ID = READ_PREFIX + WHERE_ID;
-        protected static readonly string WRITE_SQL = $"INSERT INTO {TABLE} ({string.Join(", ", NON_ID_COLUMNS.Select(c => $"[{c.ColumnName}]"))}) OUTPUT INSERTED.[{ID_COLUMN.ColumnName}] VALUES ({string.Join(", ", NON_ID_COLUMNS.Select(c => $"@{c.ColumnName}"))});";
+        protected static readonly string WRITE_SQL = $"INSERT INTO {TABLE} ({string.Join(", ", NON_ID_COLUMNS.Select(c => $"[{c.ColumnName}]"))}) VALUES ({string.Join(", ", NON_ID_COLUMNS.Select(c => $"@{c.ColumnName}"))}); SELECT last_insert_rowid();";
 
         public string DeleteSqlById()
             => DELETE_WHERE_ID;
@@ -97,8 +79,7 @@ END;";
             if (typeof(T).TryGetAttribute(out TableAttribute table))
                 name = table.Value;
             string sql =
-$@"CREATE TABLE [{name}] (
-    [{ID_COLUMN.ColumnName}] int IDENTITY(1,1) PRIMARY KEY,
+$@"CREATE TABLE [{name}] (    
     {string.Join($",{Environment.NewLine}    ", NON_ID_COLUMNS.Select(c => $"[{c.ColumnName}] {types.GetDbTypeString(c)}"))}
 );";
             return sql;

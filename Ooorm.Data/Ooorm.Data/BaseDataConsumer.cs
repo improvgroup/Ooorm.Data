@@ -1,11 +1,7 @@
-﻿using Newtonsoft.Json;
-using Ooorm.Data.Reflection;
+﻿using Ooorm.Data.Reflection;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml;
-using System.Xml.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Data;
 using System.Linq;
 using System.Reflection;
@@ -24,11 +20,16 @@ namespace Ooorm.Data
 
         private static MethodInfo dateTimeOffsetMethodCache;
 
-        public virtual object ReadColumn(TDataReader reader, Column column, int index, ITypeResolver types)
+        public virtual object ReadColumn(TDataReader reader, Column column, int index, IExtendableTypeResolver types)
+        {
+            return types.DbDeserialize(column.PropertyType, ReadColumnFromReader(reader, column, index, types));
+        }
+
+        private object ReadColumnFromReader(TDataReader reader, Column column, int index, IExtendableTypeResolver types)
         {
             if (reader.IsDBNull(index))
                 return null;
-            switch (types.DbType(column.PropertyType))
+            switch (types.GetDbType(column))
             {
                 case DbType.Boolean:
                     return reader.GetBoolean(index);
@@ -92,36 +93,15 @@ namespace Ooorm.Data
         {
             string data = null;
             if (!reader.IsDBNull(index))
-                data = reader.GetString(index);
-            if (column.PropertyType == typeof(string))
-                return data;
-            else if (column.PropertyType == typeof(char[]))
-                return data.ToCharArray();
-            else if (column.PropertyType == typeof(XmlDocument))
-            {
-                var doc = new XmlDocument();
-                doc.Load(data);
-                return doc;
-            }
-            else if (column.Info.HasAttribute<AsJsonAttribute>())
-                return JsonConvert.DeserializeObject(data, column.PropertyType);
-            else if (column.Info.HasAttribute<AsXmlAttribute>())
-                using (TextReader text = new StringReader(data))
-                    return new XmlSerializer(column.PropertyType).Deserialize(text);
-            throw new NotSupportedException($"Can not convert DbString type to {column.PropertyType} for column {column.ColumnName} -> {column.PropertyName}");
+                data = reader.GetString(index);            
+            return data;
         }
 
         protected virtual object ReadBinaryField(TDataReader reader, Column column, int index)
-        {
-            if (column.PropertyType == typeof(byte[]))
-            {
-                var buffer = new byte[reader.GetBytes(index, 0, null, 0, 0)];
-                reader.GetBytes(index, 0, buffer, 0, buffer.Length);
-                return buffer;
-            }
-            else if (column.Info.HasAttribute<AsBinaryAttribute>() && TryGetStream(reader, index, out Stream stream))
-                return new BinaryFormatter().Deserialize(stream);
-            throw new NotSupportedException($"Can not convert DbString type to {column.PropertyType} for column {column.ColumnName} -> {column.PropertyName}");
+        {            
+            var buffer = new byte[reader.GetBytes(index, 0, null, 0, 0)];
+            reader.GetBytes(index, 0, buffer, 0, buffer.Length);
+            return buffer;            
         }
     }
 }

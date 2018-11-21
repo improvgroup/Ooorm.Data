@@ -24,6 +24,22 @@ namespace Ooorm.Data
                 backTypes.Add(type);
         }
 
+        public async Task CreateTable<T>() where T : IDbItem
+        {
+            if (backTypes.Contains(typeof(T)))
+                await back.CreateTable<T>();
+            else
+                await front.CreateTable<T>();
+        }
+
+        public async Task CreateTables(params Type[] tables)
+        {
+            foreach (var type in tables)
+                if (backTypes.Contains(type))
+                    await back.CreateTables(type);
+                else
+                    await front.CreateTables(type);
+        }
 
         public async Task<int> Delete<T>(params T[] values) where T : IDbItem
         {
@@ -63,6 +79,23 @@ namespace Ooorm.Data
                 return await back.Dereference(value);
             else
                 return await front.Dereference(value);
+        }
+
+        public async Task DropTable<T>() where T : IDbItem
+        {
+            if (backTypes.Contains(typeof(T)))
+                await back.DropTable<T>();
+            else
+                await front.DropTable<T>();
+        }
+
+        public async Task DropTables(params Type[] tables)
+        {
+            foreach (var type in tables)
+                if (backTypes.Contains(type))
+                    await back.DropTables(type);
+                else
+                    await front.DropTables(type);
         }
 
         public async Task<IEnumerable<T>> Read<T>() where T : IDbItem

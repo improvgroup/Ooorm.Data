@@ -55,13 +55,14 @@ namespace Ooorm.Data
         Task<int> Delete<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem;
     }
 
-    public interface IDatabaseManagementSystem : ISchema, IDatabase
+    public interface IDatabaseManagementSystem : IDatabase
     {
-
+        Task DropDatabase(string name);
+        Task CreateDatabase(string name, params Type[] tables);
     }
 
 
-    public interface IDatabase : IReadable, IWritable
+    public interface IDatabase : IReadable, IWritable, ISchema
     {
 
     }
