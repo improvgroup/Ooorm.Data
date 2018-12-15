@@ -14,7 +14,7 @@
     <RepositoryUrl>https://github.com/KelsonBall/Ooorm.Data</RepositoryUrl>
     <PackageTags>ORM, Data, Sql Server</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>Added IDbItemExtensions for snazzy new semantic db stuff</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

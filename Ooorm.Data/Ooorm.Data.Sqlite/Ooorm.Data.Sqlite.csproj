@@ -3,6 +3,15 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <Version>0.1.0-beta</Version>
+    <Description>Ooorm.Data implementation for Sqlite</Description>
+    <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/KelsonBall/Ooorm.Data</PackageProjectUrl>
+    <PackageIconUrl>https://avatars2.githubusercontent.com/u/7193540</PackageIconUrl>
+    <RepositoryUrl>https://github.com/KelsonBall/Ooorm.Data</RepositoryUrl>
+    <PackageTags>ORM, Data, Sqlite</PackageTags>
+    <PackageReleaseNotes>Initial release of sqlite implementation</PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
