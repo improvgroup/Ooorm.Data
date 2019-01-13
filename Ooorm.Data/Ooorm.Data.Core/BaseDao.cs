@@ -1,0 +1,136 @@
+﻿using Ooorm.Data.Core.Reflection;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Ooorm.Data.Core
+{
+    /// <summary>
+    /// Core behavior for reading and writing to a database with SQL
+    /// </summary>
+    /// <typeparam name="TDbConnection">Specific connection type (ex: SqlConnection or SqlLiteConnection)</typeparam>
+    /// <typeparam name="TDbCommand">Specific command type (ex: SqlCommand or SqlLiteCommand)</typeparam>
+    internal abstract class BaseDao<TDbConnection, TDbCommand, TDbReader> where TDbConnection : IDbConnection where TDbCommand : IDbCommand where TDbReader : IDataReader
+    {
+        protected readonly IDataConsumer<TDbReader> consumer;
+        protected readonly IExtendableTypeResolver types;
+        protected readonly Func<IDatabase> db;
+
+        protected BaseDao(IDataConsumer<TDbReader> consumer, IExtendableTypeResolver types, Func<IDatabase> db)
+        {
+            this.consumer = consumer;
+            this.types = types;
+            this.db = db;
+        }
+
+        public abstract TDbCommand GetCommand(string sql, TDbConnection connection);
+        public abstract void AddKeyValuePair(TDbCommand command, string key, object value);
+
+        protected static readonly object propertyCacheLock = new object();
+        protected static readonly Dictionary<Type, List<Property>> propertyCache = new Dictionary<Type, List<Property>>();
+
+        public void AddParameters(TDbCommand command, string sql, object parameter)
+        {
+            if (parameter == null)
+                return;
+            var paramType = parameter.GetType();
+            lock (propertyCacheLock)
+            {
+                if (!propertyCache.ContainsKey(paramType))
+                    propertyCache[paramType] = paramType.GetDataProperties().ToList();
+            }
+            foreach (var value in propertyCache[paramType].Where(p => sql.Contains($"@{p.PropertyName}")))
+                AddKeyValuePair(command, value.PropertyName, types.DbSerialize(value.PropertyType, value.GetFrom(parameter)) ?? DBNull.Value);
+        }
+
+        public void AddParameters(TDbCommand command, string sql, (string name, object value) parameter)
+        {
+            if (types.IsDbValueType(parameter.value.GetType()))
+                AddKeyValuePair(command, parameter.name, types.DbSerialize(parameter.value.GetType(), parameter.value) ?? DBNull.Value);
+            else
+                AddParameters(command, sql, parameter.value);
+        }
+
+        public virtual int Execute(TDbConnection connection, string sql, object parameter)
+        {
+            using (var command = GetCommand(sql, connection))
+            {
+                command.CommandText = sql;
+                AddParameters(command, sql, parameter);
+                return command.ExecuteNonQuery();
+            }
+        }
+
+        protected static readonly object columnCacheLock = new object();
+        protected static readonly Dictionary<Type, Dictionary<string, Column>> columnCache = new Dictionary<Type, Dictionary<string, Column>>();
+
+        public static void CheckColumnCache<T>() where T : IDbItem
+        {
+            lock (columnCacheLock)
+            {
+                if (!columnCache.ContainsKey(typeof(T)))
+                    columnCache[typeof(T)] = typeof(T).GetColumns().ToDictionary(c => c.ColumnName, c => c);
+            }
+        }
+
+        public virtual IAsyncEnumerable<T> Read<T>(Func<TDbConnection> connection, string sql, object parameter) where T : IDbItem
+        {
+            void withCommand(Action<TDbCommand, Action> action)
+            {
+                var c = connection();
+                var command = GetCommand(sql, c);
+                CheckColumnCache<T>();
+                AddParameters(command, sql, parameter);
+                action(command, command.Dispose);
+            }
+            
+            return ExecuteReader<T>(withCommand);            
+        }
+
+        protected virtual IAsyncEnumerable<T> ExecuteReader<T>(Action<Action<TDbCommand, Action>> withCommand) where T : IDbItem
+        {
+            void withReader(Action<TDbReader, Action> action)
+            {
+                withCommand((command, dispose) =>
+                {
+                    var reader = (TDbReader)command.ExecuteReader();
+                    action(reader, reader.Dispose);
+                });
+            }
+
+            return ParseReader<T>(withReader);
+        }
+
+        protected virtual IAsyncEnumerable<T> ParseReader<T>(Action<Action<TDbReader, Action>> withReader) where T : IDbItem
+        {
+            var results = new QueuedAsyncEnumerable<T>(() =>
+            {
+                var enumerator = new QueuedAsyncEnumerator<T>();
+                withReader((reader, dispose) =>
+                {
+                    Task.Factory.StartNew(() =>
+                    {
+                        while (!enumerator.IsComplete && reader.Read())
+                        {
+                            var row = typeof(T).IsValueType ? default : Activator.CreateInstance<T>();
+                            for (int ordinal = 0; ordinal < reader.FieldCount; ordinal++)
+                            {
+                                var column = columnCache[typeof(T)][reader.GetName(ordinal)];
+                                var columnValue = consumer.ReadColumn(reader, column, ordinal, types);
+                                column.SetOn(row, columnValue);
+                            }
+                            enumerator.Push(row);
+                        }
+                        enumerator.Complete();
+                        dispose();
+                    });
+                });
+                return enumerator;
+            });
+
+            return results;
+        }
+    }
+}

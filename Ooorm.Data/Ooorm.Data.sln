@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2035
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data", "Ooorm.Data\Ooorm.Data.csproj", "{71DBBB14-81E1-4A23-8BB0-1441000D234C}"
 EndProject
@@ -13,9 +13,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.Volatile", "Ooor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.Volatile.Tests", "Ooorm.Data.Volatile.Tests\Ooorm.Data.Volatile.Tests.csproj", "{C4292508-C9CC-4DD0-9E5D-87913EDBB46A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.Sqlite", "Ooorm.Data.Sqlite\Ooorm.Data.Sqlite.csproj", "{F98608BC-7EEE-40AF-B83A-B7E4C808B577}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.Sqlite", "Ooorm.Data.Sqlite\Ooorm.Data.Sqlite.csproj", "{F98608BC-7EEE-40AF-B83A-B7E4C808B577}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.Sqlite.Tests", "Ooorm.Data.Sqlite.Tests\Ooorm.Data.Sqlite.Tests.csproj", "{2C00BE77-F0AB-43D0-954B-711CFE46864C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.Sqlite.Tests", "Ooorm.Data.Sqlite.Tests\Ooorm.Data.Sqlite.Tests.csproj", "{2C00BE77-F0AB-43D0-954B-711CFE46864C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.Core", "Ooorm.Data.Core\Ooorm.Data.Core.csproj", "{1EB1DA3E-73DE-43A7-9052-D87571C2E384}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.Core.Sqlite", "Ooorm.Data.Core.Sqlite\Ooorm.Data.Core.Sqlite.csproj", "{36DE6A2E-DA1E-434D-BE0D-1F97C6090395}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.Core.AsyncExtensions", "Ooorm.Data.Core.AsyncExtensions\Ooorm.Data.Core.AsyncExtensions.csproj", "{B1623792-95E6-4983-885F-A7A342954BF1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +57,18 @@ Global
 		{2C00BE77-F0AB-43D0-954B-711CFE46864C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C00BE77-F0AB-43D0-954B-711CFE46864C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C00BE77-F0AB-43D0-954B-711CFE46864C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EB1DA3E-73DE-43A7-9052-D87571C2E384}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EB1DA3E-73DE-43A7-9052-D87571C2E384}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EB1DA3E-73DE-43A7-9052-D87571C2E384}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EB1DA3E-73DE-43A7-9052-D87571C2E384}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36DE6A2E-DA1E-434D-BE0D-1F97C6090395}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36DE6A2E-DA1E-434D-BE0D-1F97C6090395}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36DE6A2E-DA1E-434D-BE0D-1F97C6090395}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36DE6A2E-DA1E-434D-BE0D-1F97C6090395}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1623792-95E6-4983-885F-A7A342954BF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1623792-95E6-4983-885F-A7A342954BF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1623792-95E6-4983-885F-A7A342954BF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1623792-95E6-4983-885F-A7A342954BF1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
