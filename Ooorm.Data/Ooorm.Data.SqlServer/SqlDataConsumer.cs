@@ -22,7 +22,7 @@ namespace Ooorm.Data.SqlServer
             {
                 stream = default;
                 return false;
-            }            
+            }
             catch (InvalidCastException)
             {
                 stream = default;

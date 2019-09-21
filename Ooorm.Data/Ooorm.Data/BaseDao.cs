@@ -14,10 +14,10 @@ namespace Ooorm.Data
     internal abstract class BaseDao<TDbConnection, TDbCommand, TDbReader> where TDbConnection : IDbConnection where TDbCommand : IDbCommand where TDbReader : IDataReader
     {
         protected readonly IDataConsumer<TDbReader> consumer;
-        protected readonly ITypeProvider types;
+        protected readonly IExtendableTypeResolver types;
         protected readonly Func<IDatabase> db;
 
-        protected BaseDao(IDataConsumer<TDbReader> consumer, ITypeProvider types, Func<IDatabase> db)
+        protected BaseDao(IDataConsumer<TDbReader> consumer, IExtendableTypeResolver types, Func<IDatabase> db)
         {
             this.consumer = consumer;
             this.types = types;
@@ -27,6 +27,7 @@ namespace Ooorm.Data
         public abstract TDbCommand GetCommand(string sql, TDbConnection connection);
         public abstract void AddKeyValuePair(TDbCommand command, string key, object value);
 
+        protected static readonly object propertyCacheLock = new object();
         protected static readonly Dictionary<Type, List<Property>> propertyCache = new Dictionary<Type, List<Property>>();
 
         public void AddParameters(TDbCommand command, string sql, object parameter)
@@ -34,16 +35,19 @@ namespace Ooorm.Data
             if (parameter == null)
                 return;
             var paramType = parameter.GetType();
-            if (!propertyCache.ContainsKey(paramType))
-                propertyCache[paramType] = paramType.GetDataProperties().ToList();
+            lock (propertyCacheLock)
+            {
+                if (!propertyCache.ContainsKey(paramType))
+                    propertyCache[paramType] = paramType.GetDataProperties().ToList();
+            }
             foreach (var value in propertyCache[paramType].Where(p => sql.Contains($"@{p.PropertyName}")))
-                AddKeyValuePair(command, value.PropertyName, types.ToDbValue(value.GetFrom(parameter)) ?? DBNull.Value);
+                AddKeyValuePair(command, value.PropertyName, types.DbSerialize(value.PropertyType, value.GetFrom(parameter)) ?? DBNull.Value);
         }
 
         public void AddParameters(TDbCommand command, string sql, (string name, object value) parameter)
         {
             if (types.IsDbValueType(parameter.value.GetType()))
-                AddKeyValuePair(command, parameter.name, types.ToDbValue(parameter.value) ?? DBNull.Value);
+                AddKeyValuePair(command, parameter.name, types.DbSerialize(parameter.value.GetType(), parameter.value) ?? DBNull.Value);
             else
                 AddParameters(command, sql, parameter.value);
         }
@@ -58,12 +62,16 @@ namespace Ooorm.Data
             }
         }
 
+        protected static readonly object columnCacheLock = new object();
         protected static readonly Dictionary<Type, Dictionary<string, Column>> columnCache = new Dictionary<Type, Dictionary<string, Column>>();
 
         public static void CheckColumnCache<T>() where T : IDbItem
         {
-            if (!columnCache.ContainsKey(typeof(T)))
-                columnCache[typeof(T)] = typeof(T).GetColumns().ToDictionary(c => c.ColumnName, c => c);
+            lock (columnCacheLock)
+            {
+                if (!columnCache.ContainsKey(typeof(T)))
+                    columnCache[typeof(T)] = typeof(T).GetColumns().ToDictionary(c => c.ColumnName, c => c);
+            }
         }
 
         public virtual IEnumerable<T> Read<T>(TDbConnection connection, string sql, object parameter) where T : IDbItem
@@ -93,7 +101,8 @@ namespace Ooorm.Data
                 for (int ordinal = 0; ordinal < reader.FieldCount; ordinal++)
                 {
                     var column = columnCache[typeof(T)][reader.GetName(ordinal)];
-                    column.SetOn(row, types.FromDbValue(consumer.ReadColumn(reader, column, ordinal, types), column.PropertyType));
+                    var columnValue = consumer.ReadColumn(reader, column, ordinal, types);
+                    column.SetOn(row, columnValue);
                 }
                 results.Add(row);
             }

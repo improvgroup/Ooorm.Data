@@ -8,7 +8,7 @@ using Ooorm.Data.QueryProviders;
 
 namespace Ooorm.Data.SqlServer
 {
-    internal class SqlServerQueryProvider : ISchemaProvider
+    internal class SqlServerQueryProvider : IDatabaseManagementQueryProvider
     {
         public string DatabaseSql(string name)
             => $"USE MASTER; IF db_id('{name}') is null CREATE DATABASE [{name}];";
@@ -28,7 +28,7 @@ END;";
 
     internal class SqlServerQueryProvider<T> : SqlServerQueryProvider, IQueryProvider<T> where T : IDbItem
     {
-        protected readonly ITypeProvider types;
+        protected readonly IExtendableTypeResolver types;
 
         public SqlServerQueryProvider(Func<IDatabase> db) => types = new SqlServerTypeProvider(db);
 
@@ -50,8 +50,8 @@ END;";
         public string DeleteSql(Expression<Func<T, bool>> predicate)
             => DELETE_PREFIX.Append(WhereClause(predicate)).Append(";").ToString();
 
-        public string DeleteSql<TParam>(Expression<Func<T, TParam, bool>> predicate)
-            => DELETE_PREFIX.Append(WhereClause(predicate)).Append(";").ToString();
+        public string DeleteSql<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
+            => DELETE_PREFIX.Append(WhereClause(predicate, param)).Append(";").ToString();
 
         public string WriteSql()
             => WRITE_SQL;
@@ -65,8 +65,8 @@ END;";
         public string ReadSql(Expression<Func<T, bool>> predicate)
             => READ_PREFIX.Append(WhereClause(predicate)).Append(";").ToString();
 
-        public string ReadSql<TParam>(Expression<Func<T, TParam, bool>> predicate)
-            => READ_PREFIX.Append(WhereClause(predicate)).Append(";").ToString();
+        public string ReadSql<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
+            => READ_PREFIX.Append(WhereClause(predicate, param)).Append(";").ToString();
 
         public string ReadSqlById()
             => READ_WHERE_ID;
@@ -74,11 +74,11 @@ END;";
         public string UpdateSql<TParam>()
         {
             var paramNames = new HashSet<string>(typeof(TParam).GetDataProperties().Select(p => p.PropertyName));
-            return UPDATE_PREFIX.Append(string.Join(", ", NON_ID_COLUMNS.Where(c => paramNames.Contains(c.ColumnName)).Select(c => "[" + c.ColumnName + "] = @" + c.ColumnName))).ToString();
+            return UPDATE_PREFIX.Append(string.Join(", ", NON_ID_COLUMNS.Where(c => paramNames.Contains(c.ColumnName)).Select(c => "[" + c.ColumnName + "] = @" + c.ColumnName))).Append(" WHERE [ID] = @ID").ToString();
         }
 
-        public string WhereClause<TParam>(Expression<Func<T, TParam, bool>> predicate)
-            => "WHERE ".Append(predicate.ToSql()).ToString();
+        public string WhereClause<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
+            => "WHERE ".Append(predicate.ToSql(param)).ToString();
 
         public string WhereClause(Expression<Func<T, bool>> predicate)
             => "WHERE ".Append(predicate.ToSql()).ToString();
@@ -99,7 +99,7 @@ END;";
             string sql =
 $@"CREATE TABLE [{name}] (
     [{ID_COLUMN.ColumnName}] int IDENTITY(1,1) PRIMARY KEY,
-    {string.Join($",{Environment.NewLine}    ", NON_ID_COLUMNS.Select(c => $"{c.ColumnName} {types.DbTypeString(c)}"))}
+    {string.Join($",{Environment.NewLine}    ", NON_ID_COLUMNS.Select(c => $"[{c.ColumnName}] {types.GetDbTypeString(c)}"))}
 );";
             return sql;
         }

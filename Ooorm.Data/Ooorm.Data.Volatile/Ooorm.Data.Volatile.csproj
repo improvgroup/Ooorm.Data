@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.1.0-beta</Version>
+    <Company>Kelson Software</Company>
+    <Authors>Kelson Ball</Authors>
+    <Product>Ooorm.Data</Product>
+    <Description>Pure in-memory database implementation for Ooorm.Data</Description>
+    <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/KelsonBall/Ooorm.Data</PackageProjectUrl>
+    <PackageIconUrl>https://avatars2.githubusercontent.com/u/7193540</PackageIconUrl>
+    <RepositoryUrl>https://github.com/KelsonBall/Ooorm.Data</RepositoryUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Kelson.Common.Async" Version="0.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ooorm.Data\Ooorm.Data.csproj" />
+  </ItemGroup>
+
+</Project>

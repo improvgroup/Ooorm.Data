@@ -11,7 +11,7 @@ namespace Ooorm.Data.SqlServer
     /// </summary>
     internal class SqlDao : BaseDao<System.Data.SqlClient.SqlConnection, SqlCommand, SqlDataReader>
     {
-        public SqlDao(Func<IDatabase> db) : base(new SqlDataConsumer(), new DefaultTypeProvider(db), db) { }
+        public SqlDao(Func<IDatabase> db) : base(new SqlDataConsumer(), new SqlServerTypeProvider(db), db) { }
 
         public override void AddKeyValuePair(SqlCommand command, string key, object value)
         {
@@ -23,13 +23,8 @@ namespace Ooorm.Data.SqlServer
             command.Parameters.AddWithValue(key, value);
         }
 
-        public override SqlCommand GetCommand(string sql, System.Data.SqlClient.SqlConnection connection)
-        {
-            return new SqlCommand(sql, connection)
-            {
-                CommandType = CommandType.Text
-            };
-        }
+        public override SqlCommand GetCommand(string sql, System.Data.SqlClient.SqlConnection connection) =>
+            new SqlCommand(sql, connection) { CommandType = CommandType.Text };
 
         public async Task<int> ExecuteAsync(System.Data.SqlClient.SqlConnection connection, string sql, object parameter)
         {
@@ -37,7 +32,8 @@ namespace Ooorm.Data.SqlServer
             {
                 command.CommandText = sql;
                 AddParameters(command, sql, parameter);
-                return await command.ExecuteNonQueryAsync();
+                var result = await command.ExecuteNonQueryAsync();
+                return result;
             }
         }
 
@@ -71,9 +67,8 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
-        protected async Task<IEnumerable<T>> ExecuteReaderAsync<T>(SqlCommand command) where T : IDbItem
-            => await Task.Run(() => ExecuteReader<T>(command));
-
+        protected async Task<IEnumerable<T>> ExecuteReaderAsync<T>(SqlCommand command) where T : IDbItem =>
+            await Task.Run(() => ExecuteReader<T>(command));
 
         protected override IEnumerable<T> ExecuteReader<T>(SqlCommand command)
         {

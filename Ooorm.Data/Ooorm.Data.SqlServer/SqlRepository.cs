@@ -32,14 +32,24 @@ namespace Ooorm.Data.SqlServer
         public async Task<IEnumerable<T>> Read()
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(), null)).ToList());
 
+        public async Task<IEnumerable<object>> ReadUntyped()
+            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(), null)).Select(i => (object)i).ToList());
+
+
         public async Task<T> Read(int id)
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSqlById(), new { Id = id })).Single());
+            => await ConnectionSource.FromConnectionAsync(async c =>
+            {
+                var results = await dao.ReadAsync<T>(c, queries.ReadSqlById(), new { Id = id });
+                return results.Single();
+            });
 
         public async Task<IEnumerable<T>> Read(Expression<Func<T, bool>> predicate)
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate), null)).ToList());
 
-        public async Task<IEnumerable<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, object param)
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate), (predicate.Parameters[1].Name, param))).ToList());
+        public async Task<IEnumerable<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
+            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate, param), (predicate.Parameters[1].Name, param))).ToList());
+
+
 
         public async Task<int> Update(params T[] values)
             => await ConnectionSource.FromConnectionAsync(async c => {
@@ -52,11 +62,15 @@ namespace Ooorm.Data.SqlServer
                 return sum;
             });
 
-        public async Task<int> Delete(params int[] ids)
+        public async Task<int> Delete(params T[] values)
+            => await DeleteById(values.Select(v => v.ID));
+
+
+        private async Task<int> DeleteById(IEnumerable<int> ids)
             => await ConnectionSource.FromConnectionAsync(async c => {
-                var list = new List<Task<int>>(ids.Length);
+                var list = new List<Task<int>>();
                 foreach (var id in ids)
-                    list.Add(dao.ExecuteAsync(c, queries.WriteSql(), new { Id = id }));
+                    list.Add(dao.ExecuteAsync(c, queries.DeleteSqlById(), new { Id = id }));
                 int sum = 0;
                 foreach (var task in list)
                     sum += await task;
@@ -65,6 +79,9 @@ namespace Ooorm.Data.SqlServer
 
         public async Task<int> Delete(Expression<Func<T, bool>> predicate)
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate), null)));
+
+        public async Task<int> Delete<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
+            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate, param), param)));
 
         public async Task<int> CreateTable()
              => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.CreateTableSql(), null)));

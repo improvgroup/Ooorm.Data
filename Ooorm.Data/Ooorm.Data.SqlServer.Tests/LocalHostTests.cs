@@ -32,13 +32,8 @@ namespace Ooorm.Data.SqlServer.Tests
         [Fact]
         public async Task CrudTest()
         {
-            string dbName = nameof(LocalHostTests) + nameof(CrudTest) + Guid.NewGuid().ToString().Substring(0,8);
-            var master = new SqlDatabase(SqlConnection.CreateShared(TestFixture.ConnectionString("master")));
-            await master.DropDatabase(dbName);
-            await master.CreateDatabase(dbName);
-            try
+            await TestFixture.WithTempDb(async db =>
             {
-                var db = new SqlDatabase(SqlConnection.CreateShared(TestFixture.ConnectionString(dbName)));
                 await db.CreateTables(typeof(Widget), typeof(WidgetDoodad), typeof(Doodad));
 
                 var widget1 = new Widget { Value = 1 };
@@ -106,25 +101,14 @@ namespace Ooorm.Data.SqlServer.Tests
                     last.ID.Should().Be(doodad1.ID);
                 else
                     false.Should().BeTrue();
-            }
-            catch (Exception) { throw; }
-            finally
-            {
-                await master.DropDatabase(dbName);
-            }
+            });
         }
 
         [Fact]
         public async Task ItemExtensionsTest()
         {
-            string dbName = nameof(LocalHostTests) + nameof(ItemExtensionsTest) + Guid.NewGuid().ToString().Substring(0, 8);
-            var master = new SqlDatabase(SqlConnection.CreateShared(TestFixture.ConnectionString("master")));
-            await master.DropDatabase(dbName);
-            await master.CreateDatabase(dbName);
-            try
+            await TestFixture.WithTempDb(async db =>
             {
-                var db = new SqlDatabase(SqlConnection.CreateShared(TestFixture.ConnectionString(dbName)));
-
                 await typeof(Widget).CreateTableIn(db);
                 await typeof(WidgetDoodad).CreateTableIn(db);
                 await typeof(Doodad).CreateTableIn(db);
@@ -157,12 +141,7 @@ namespace Ooorm.Data.SqlServer.Tests
 
                 (w2doodads.Any(d => d.Name == "C") && w2doodads.Count() == 1)
                     .Should().BeTrue();
-            }
-            catch (Exception) { throw; }
-            finally
-            {
-                await master.DropDatabase(dbName);
-            }
+            });
         }
     }
 }
