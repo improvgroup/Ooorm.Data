@@ -12,7 +12,7 @@ namespace Ooorm.Data
         Task<IEnumerable<object>> ReadUntyped();
     }
 
-    public interface ICrudRepository<T> : ICrudRepository where T : IDbItem
+    public interface ICrudRepository<T, TId> : ICrudRepository where T : IDbItem<TId> where TId : struct, IEquatable<TId>
     {
         Task<int> Write(params T[] values);
         Task<IEnumerable<T>> Read();

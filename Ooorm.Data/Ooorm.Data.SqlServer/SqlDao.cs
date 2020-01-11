@@ -47,7 +47,7 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
-        public async Task<IEnumerable<T>> ReadAsync<T>(System.Data.SqlClient.SqlConnection connection, string sql, object parameter) where T : IDbItem
+        public async Task<IEnumerable<T>> ReadAsync<T>(System.Data.SqlClient.SqlConnection connection, string sql, object parameter) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
         {
             using (var command = GetCommand(sql, connection))
             {
@@ -57,7 +57,7 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
-        public async Task<IEnumerable<T>> ReadAsync<T>(System.Data.SqlClient.SqlConnection connection, string sql, (string name, object value) parameter) where T : IDbItem
+        public async Task<IEnumerable<T>> ReadAsync<T>(System.Data.SqlClient.SqlConnection connection, string sql, (string name, object value) parameter) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
         {
             using (var command = GetCommand(sql, connection))
             {
@@ -67,7 +67,7 @@ namespace Ooorm.Data.SqlServer
             }
         }
 
-        protected async Task<IEnumerable<T>> ExecuteReaderAsync<T>(SqlCommand command) where T : IDbItem =>
+        protected async Task<IEnumerable<T>> ExecuteReaderAsync<T>(SqlCommand command) where T : IDbItem<TId> where TId : struct, IEquatable<TId> =>
             await Task.Run(() => ExecuteReader<T>(command));
 
         protected override IEnumerable<T> ExecuteReader<T>(SqlCommand command)

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data.Volatile
 {
-    public class VolatileRepository<T> : ICrudRepository<T> where T : IDbItem
+    public class VolatileRepository<T> : ICrudRepository<T> where T : IDbItem<TId> where TId : struct, IEquatable<TId>
     {
         protected class Bucket
         {

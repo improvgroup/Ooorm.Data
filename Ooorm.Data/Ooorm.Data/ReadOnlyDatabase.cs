@@ -12,23 +12,23 @@ namespace Ooorm.Data
 
         public ReadOnlyDatabase(IDatabase source) => this.source = source;
 
-        public async Task<T> Dereference<T>(DbVal<T> value) where T : IDbItem
+        public async Task<T> Dereference<T, TId>(DbVal<T, TId> value) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
             => await source.Dereference(value);
 
-        public async Task<(bool exists, T value)> Dereference<T>(DbRef<T> value) where T : IDbItem
+        public async Task<(bool exists, T value)> Dereference<T, TId>(DbRef<T, TId> value) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
             => await source.Dereference(value);
 
-        public async Task<IEnumerable<T>> Read<T>() where T : IDbItem
-            => await source.Read<T>();
+        public async Task<IEnumerable<T>> Read<T, TId>() where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+            => await source.Read<T, TId>();
 
-        public async Task<T> Read<T>(int id) where T : IDbItem
-            => await source.Read<T>(id);
+        public async Task<T> Read<T, TId>(TId id) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+            => await source.Read<T, TId>(id);
 
-        public async Task<IEnumerable<T>> Read<T>(Expression<Func<T, bool>> predicate) where T : IDbItem
-            => await source.Read(predicate);
+        public async Task<IEnumerable<T>> Read<T, TId>(Expression<Func<T, bool>> predicate) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+            => await source.Read<T, TId>(predicate);
 
-        public async Task<IEnumerable<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem
-            => await source.Read(predicate, param);
+        public async Task<IEnumerable<T>> Read<T, TParam, TId>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+            => await source.Read<T, TParam, TId>(predicate, param);
 
         public async Task<IEnumerable<object>> Read(Type type)
             => await source.Read(type);

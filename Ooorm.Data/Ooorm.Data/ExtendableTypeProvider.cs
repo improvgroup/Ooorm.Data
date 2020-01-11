@@ -63,10 +63,10 @@ namespace Ooorm.Data
                 return Enum.ToObject(type, value);
             if (IsDbVal(type))
                 return Activator.CreateInstance(
-                    typeof(DbVal<>).MakeGenericType(type.GenericTypeArguments), value, database);
+                    typeof(DbVal<,>).MakeGenericType(type.GenericTypeArguments), value, database);
             else if (IsDbRef(type))
                 return Activator.CreateInstance(
-                    typeof(DbRef<>).MakeGenericType(type.GenericTypeArguments), value, database);
+                    typeof(DbRef<,>).MakeGenericType(type.GenericTypeArguments), value, database);
             else if (IsNullable(type, out Type generic))
             {
                 try { return GetHandler(generic).DeserializeObject(value); }
@@ -114,15 +114,15 @@ namespace Ooorm.Data
             => (clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Nullable<>)) ? (generic = clrType.GenericTypeArguments.FirstOrDefault()) != null : (generic = null) != null;
 
         private bool IsDbVal(Type clrType)
-            => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(DbVal<>);
+            => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(DbVal<,>);
 
         private bool IsDbRef(Type clrType)
-            => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(DbRef<>);
+            => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(DbRef<,>);
 
         public bool IsReference(Type clrType) => IsDbVal(clrType) || IsDbRef(clrType);
 
         public bool IsDbValueType(Type clrType)
-            => (clrType.IsGenericType && (clrType == typeof(DbRef<>).MakeGenericType(clrType.GenericTypeArguments) || clrType == typeof(DbVal<>).MakeGenericType(clrType.GenericTypeArguments)))
+            => (clrType.IsGenericType && (clrType == typeof(DbRef<,>).MakeGenericType(clrType.GenericTypeArguments) || clrType == typeof(DbVal<,>).MakeGenericType(clrType.GenericTypeArguments)))
                     || HasMapping(clrType);
 
         private bool HasMapping(Type clrType)

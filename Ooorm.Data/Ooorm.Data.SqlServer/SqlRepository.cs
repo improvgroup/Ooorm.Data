@@ -9,7 +9,7 @@ namespace Ooorm.Data.SqlServer
     /// <summary>
     /// Generic Repository for Sql Server connections
     /// </summary>
-    public class SqlRepository<T> : ICrudRepository<T> where T : IDbItem
+    public class SqlRepository<T> : ICrudRepository<T> where T : IDbItem<TId> where TId : struct, IEquatable<TId>
     {
         protected readonly SqlConnection ConnectionSource;
         private readonly SqlDao dao;

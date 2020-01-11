@@ -8,7 +8,7 @@ using Ooorm.Data.QueryProviders;
 
 namespace Ooorm.Data.Sqlite
 {    
-    internal class SqliteQueryProvider<T> : IQueryProvider<T> where T : IDbItem
+    internal class SqliteQueryProvider<T> : IQueryProvider<T> where T : IDbItem<TId> where TId : struct, IEquatable<TId>
     {
         protected readonly IExtendableTypeResolver types;
 

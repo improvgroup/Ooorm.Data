@@ -41,17 +41,17 @@ namespace Ooorm.Data.Reflection
             return attr != null;
         }
 
-        internal static IEnumerable<Column<T>> GetColumns<T>(this T value, bool exceptId = false) where T : IDbItem
+        internal static IEnumerable<Column<T>> GetColumns<T, TId>(this T value, bool exceptId = false) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
             => typeof(T).GetProperties(PROPS)
                     .Where(p => !p.HasAttribute<DbIgnoreAttribute>())
-                    .Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem.ID))) )
+                    .Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem<TId>.ID))) )
                     .Select(p => new Column<T>(p));
 
         public static IEnumerable<Column> GetColumns(this Type type, bool exceptId = false)
         {
             var props = type.GetProperties(PROPS).ToArray();
             var fields = props.Where(p => !p.HasAttribute<DbIgnoreAttribute>()).ToArray();
-            var notId = fields.Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem.ID))) ).ToArray();
+            var notId = fields.Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem<int>.ID))) ).ToArray();
             var columns = notId.Select(p => new Column(p)).ToArray();
             return columns;
         }

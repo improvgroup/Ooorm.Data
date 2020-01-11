@@ -56,7 +56,7 @@ namespace Ooorm.Data.Sqlite
             }
         }
 
-        public async Task<IEnumerable<T>> ReadAsync<T>(System.Data.SQLite.SQLiteConnection connection, string sql, object parameter) where T : IDbItem
+        public async Task<IEnumerable<T>> ReadAsync<T>(System.Data.SQLite.SQLiteConnection connection, string sql, object parameter) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
         {
             using (var command = GetCommand(sql, connection))
             {
@@ -66,7 +66,7 @@ namespace Ooorm.Data.Sqlite
             }
         }
 
-        public async Task<IEnumerable<T>> ReadAsync<T>(System.Data.SQLite.SQLiteConnection connection, string sql, (string name, object value) parameter) where T : IDbItem
+        public async Task<IEnumerable<T>> ReadAsync<T>(System.Data.SQLite.SQLiteConnection connection, string sql, (string name, object value) parameter) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
         {
             using (var command = GetCommand(sql, connection))
             {
@@ -76,7 +76,7 @@ namespace Ooorm.Data.Sqlite
             }
         }
 
-        protected async Task<IEnumerable<T>> ExecuteReaderAsync<T>(SQLiteCommand command) where T : IDbItem =>
+        protected async Task<IEnumerable<T>> ExecuteReaderAsync<T>(SQLiteCommand command) where T : IDbItem<TId> where TId : struct, IEquatable<TId> =>
             await Task.Run(() => ExecuteReader<T>(command));
 
         protected override IEnumerable<T> ExecuteReader<T>(SQLiteCommand command)

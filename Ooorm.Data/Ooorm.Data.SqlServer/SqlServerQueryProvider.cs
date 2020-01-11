@@ -26,7 +26,7 @@ EXEC('DROP DATABASE [{name}]');
 END;";
     }
 
-    internal class SqlServerQueryProvider<T> : SqlServerQueryProvider, IQueryProvider<T> where T : IDbItem
+    internal class SqlServerQueryProvider<T> : SqlServerQueryProvider, IQueryProvider<T> where T : IDbItem<TId> where TId : struct, IEquatable<TId>
     {
         protected readonly IExtendableTypeResolver types;
 
