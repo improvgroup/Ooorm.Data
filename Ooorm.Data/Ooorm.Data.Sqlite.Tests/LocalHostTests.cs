@@ -2,10 +2,9 @@
 using System.Threading.Tasks;
 using Xunit;
 using System.Linq;
-using System;
 using Ooorm.Data.Reflection;
 
-namespace Ooorm.Data.SqlServer.Tests
+namespace Ooorm.Data.Sqlite.Tests
 {
     public class LocalHostTests
     {
@@ -41,7 +40,9 @@ namespace Ooorm.Data.SqlServer.Tests
         {
             await TestFixture.WithTempDb(async db =>
             {
-                await db.CreateTables(typeof(Widget), typeof(WidgetDoodad), typeof(Doodad));
+                await db.CreateTable<Widget, int>();
+                await db.CreateTable<Doodad, int>();
+                await db.CreateTable<WidgetDoodad, int>();
 
                 var widget1 = new Widget { Value = 1 };
                 var widget2 = new Widget { Value = 2 };
@@ -117,9 +118,9 @@ namespace Ooorm.Data.SqlServer.Tests
         {
             await TestFixture.WithTempDb(async db =>
             {
-                await typeof(Widget).CreateTableIn(db);
-                await typeof(WidgetDoodad).CreateTableIn(db);
-                await typeof(Doodad).CreateTableIn(db);
+                await db.CreateTable<Widget, int>();
+                await db.CreateTable<Doodad, int>();
+                await db.CreateTable<WidgetDoodad, int>();
 
                 var w1 = await new Widget { Value = 100 }.WriteTo(db);
                 var w2 = await new Widget { Value = 200 }.WriteTo(db);

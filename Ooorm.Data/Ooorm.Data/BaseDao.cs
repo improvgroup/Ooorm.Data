@@ -53,7 +53,7 @@ namespace Ooorm.Data
         }
 
         public virtual int Execute(TDbConnection connection, string sql, object parameter)
-        {
+        {            
             using (var command = GetCommand(sql, connection))
             {
                 command.CommandText = sql;
@@ -76,9 +76,9 @@ namespace Ooorm.Data
 
         public virtual List<T> Read<T, TId>(TDbConnection connection, string sql, object parameter) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
         {
+            CheckColumnCache<T, TId>();
             using (var command = GetCommand(sql, connection))
-            {
-                CheckColumnCache<T, TId>();
+            {                
                 AddParameters(command, sql, parameter);
                 return ExecuteReader<T, TId>(command);
             }

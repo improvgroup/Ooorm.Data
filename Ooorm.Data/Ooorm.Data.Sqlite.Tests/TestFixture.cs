@@ -1,9 +1,8 @@
-﻿using Ooorm.Data.Sqlite;
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace Ooorm.Data.SqlServer.Tests
+namespace Ooorm.Data.Sqlite.Tests
 {
     public class TestFixture
     {

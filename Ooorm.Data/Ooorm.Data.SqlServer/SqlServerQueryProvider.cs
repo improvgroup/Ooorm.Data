@@ -98,7 +98,7 @@ END;";
                 name = table.Value;
             string sql =
 $@"CREATE TABLE [{name}] (
-    [{ID_COLUMN.ColumnName}] int IDENTITY(1,1) PRIMARY KEY,
+    [{ID_COLUMN.ColumnName}] {types.GetDbTypeString(ID_COLUMN)} IDENTITY(1,1) PRIMARY KEY,
     {string.Join($",{Environment.NewLine}    ", NON_ID_COLUMNS.Select(c => $"[{c.ColumnName}] {types.GetDbTypeString(c)}"))}
 );";
             return sql;

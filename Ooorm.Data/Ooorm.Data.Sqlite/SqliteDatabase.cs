@@ -11,11 +11,18 @@ namespace Ooorm.Data.Sqlite
 
         private readonly Dictionary<Type, object> repositories = new Dictionary<Type, object>();
 
-        private ICrudRepository<T, TId> Repos<T, TId>() where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
-            => (ICrudRepository<T, TId>)(repositories.ContainsKey(typeof(T)) ? repositories[typeof(T)] : (repositories[typeof(T)] = new SqliteRepository<T, TId>(source, () => this)));
+        private ICrudRepository<T, TId> Repos<T, TId>() where T : IDbItem<T, TId> where TId : struct, IEquatable<TId> =>
+            (ICrudRepository<T, TId>)(repositories.ContainsKey(typeof(T)) ? repositories[typeof(T)] : (repositories[typeof(T)] = new SqliteRepository<T, TId>(source, () => this)));
 
         private ICrudRepository Repos(Type type)
-            => (ICrudRepository)(repositories.ContainsKey(type) ? repositories[type] : (repositories[type] = Activator.CreateInstance(typeof(SqliteRepository<,>).MakeGenericType(type), source, (Func<IDatabase>)(() => this))));
+        {
+            var id_type = type.GetProperty(nameof(Param<int,int>.ID)).GetType();
+            var repo_type = typeof(SqliteRepository<,>).MakeGenericType(type, id_type);
+            Console.WriteLine(id_type);
+            return (ICrudRepository)(repositories.ContainsKey(type) 
+                    ? repositories[type] 
+                    : (repositories[type] = Activator.CreateInstance(repo_type, source, (Func<IDatabase>)(() => this))));
+        }
 
         private readonly SqliteConnection source;
 

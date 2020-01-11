@@ -9,7 +9,9 @@ namespace Ooorm.Data.Sqlite
     /// <summary>
     /// Generic Repository for Sql Server connections
     /// </summary>
-    public class SqliteRepository<T, TId> : ICrudRepository<T, TId> where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+    public class SqliteRepository<T, TId> : ICrudRepository<T, TId> 
+        where T : IDbItem<T, TId> 
+        where TId : struct, IEquatable<TId>
     {
         protected readonly SqliteConnection ConnectionSource;
         private readonly SqliteDao dao;

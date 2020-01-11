@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Ooorm.Data.Reflection;
 
-namespace Ooorm.Data.SqlServer.Tests
+namespace Ooorm.Data.Sqlite.Tests
 {
     public class TypesSupported
     {
@@ -21,7 +21,7 @@ namespace Ooorm.Data.SqlServer.Tests
         {
             await TestFixture.WithTempDb(async db =>
             {
-                await typeof(NullablesItem).CreateTableIn(db);
+                await db.CreateTable<NullablesItem, int>();
 
                 var item1 = await new NullablesItem { }.WriteTo(db);
                 var item2 = await new NullablesItem { Value = 1 }.WriteTo(db);

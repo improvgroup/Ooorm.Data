@@ -56,34 +56,35 @@ namespace Ooorm.Data.Sqlite
         }
 
         public Task<T[]> ExecuteBatchAsync<T, TId>(System.Data.SQLite.SQLiteConnection connection, string sql, params T[] parameters) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
-        {                        
-            using (var command = GetCommand(sql, connection))
-            {
-                using (var transaction = connection.BeginTransaction())
+        {       
+            CheckColumnCache<T, TId>();
+            return Task.Run(() => 
+            {                 
+                using (var command = GetCommand(sql, connection))
                 {
-                    command.Transaction = transaction;
-                    command.CommandText = sql;
-                    foreach (var parameter in parameters)
-                        AddParameters(command, sql, parameter);                                            
-                    transaction.Commit();
-                }
+                    using (var transaction = connection.BeginTransaction())
+                    {
+                        command.Transaction = transaction;
+                        command.CommandText = sql;
+                        foreach (var parameter in parameters)
+                            AddParameters(command, sql, parameter);                                            
+                        transaction.Commit();
+                    }
 
-                return Task.Run(() => 
-                {
                     T[] results = new T[parameters.Length];
                     int item_number = 0;
                     foreach (var result in ExecuteReader<T, TId>(command))
                         results[item_number++] = result;
-                    return results;
-                });
-            }            
+                    return results;                
+                }   
+            });         
         }
 
         public async Task<List<T>> ReadAsync<T, TId>(System.Data.SQLite.SQLiteConnection connection, string sql, object parameter) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
         {
+            CheckColumnCache<T, TId>();
             using (var command = GetCommand(sql, connection))
-            {
-                CheckColumnCache<T, TId>();
+            {                
                 AddParameters(command, sql, parameter);
                 return await ExecuteReaderAsync<T, TId>(command);
             }
@@ -91,9 +92,9 @@ namespace Ooorm.Data.Sqlite
 
         public async Task<List<T>> ReadAsync<T, TId>(System.Data.SQLite.SQLiteConnection connection, string sql, (string name, object value) parameter) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
         {
+            CheckColumnCache<T, TId>();
             using (var command = GetCommand(sql, connection))
-            {
-                CheckColumnCache<T, TId>();
+            {                
                 AddParameters(command, sql, parameter);
                 return await ExecuteReaderAsync<T, TId>(command);
             }
