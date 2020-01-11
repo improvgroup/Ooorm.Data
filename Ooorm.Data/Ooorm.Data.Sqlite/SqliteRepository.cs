@@ -9,64 +9,59 @@ namespace Ooorm.Data.Sqlite
     /// <summary>
     /// Generic Repository for Sql Server connections
     /// </summary>
-    public class SqliteRepository<T> : ICrudRepository<T> where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+    public class SqliteRepository<T, TId> : ICrudRepository<T, TId> where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
     {
         protected readonly SqliteConnection ConnectionSource;
         private readonly SqliteDao dao;
-        private readonly SqliteQueryProvider<T> queries;
+        private readonly SqliteQueryProvider<T, TId> queries;
 
         public SqliteRepository(SqliteConnection connection, Func<IDatabase> db)
-            => (ConnectionSource, dao, queries) = (connection, new SqliteDao(db), new SqliteQueryProvider<T>(db));
+            => (ConnectionSource, dao, queries) = (connection, new SqliteDao(db), new SqliteQueryProvider<T, TId>(db));
 
-        public async Task<int> Write(params T[] values)
-            => await ConnectionSource.FromConnectionAsync(async c => {
-                var set = new HashSet<int>();
-                foreach (var value in values)
-                {
-                    value.ID = (int)(await dao.ExecuteScalarAsync(c, queries.WriteSql(), value));
-                    set.Add(value.ID);
-                }
-                return set.Count;
+        public Task<SortedList<TId, T>> Write(params T[] values) =>
+            ConnectionSource.FromConnectionAsync(async c => {
+                var results = new SortedList<TId, T>();
+                
+                foreach(var result in await dao.ExecuteBatchAsync<T, TId>(c, queries.WriteSql(), values))                
+                    results.Add(result.ID, result);                
+                
+                return results;
             });
 
-        public async Task<IEnumerable<T>> Read()
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(), null)).ToList());
+        public Task<List<T>> Read() =>
+            ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T, TId>(c, queries.ReadSql(), null)).ToList());
 
-        public async Task<IEnumerable<object>> ReadUntyped()
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(), null)).Select(i => (object)i).ToList());
+        public Task<List<object>> ReadUntyped() =>
+            ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T, TId>(c, queries.ReadSql(), null)).Select(i => (object)i).ToList());
 
 
-        public async Task<T> Read(int id)
-            => await ConnectionSource.FromConnectionAsync(async c =>
+        public Task<T> Read(TId id) =>
+            ConnectionSource.FromConnectionAsync(async c =>
             {
-                var results = await dao.ReadAsync<T>(c, queries.ReadSqlById(), new { Id = id });
+                var results = await dao.ReadAsync<T, TId>(c, queries.ReadSqlById(), new { Id = id });
                 return results.Single();
             });
 
-        public async Task<IEnumerable<T>> Read(Expression<Func<T, bool>> predicate)
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate), null)).ToList());
+        public Task<List<T>> Read(Expression<Func<T, bool>> predicate) =>
+            ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T, TId>(c, queries.ReadSql(predicate), null)).ToList());
 
-        public async Task<IEnumerable<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate, param), (predicate.Parameters[1].Name, param))).ToList());
+        public Task<List<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) =>
+            ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T, TId>(c, queries.ReadSql(predicate, param), (predicate.Parameters[1].Name, param))).ToList());
 
-
-
-        public async Task<int> Update(params T[] values)
-            => await ConnectionSource.FromConnectionAsync(async c => {
-                var list = new List<Task<int>>(values.Length);
-                foreach (var value in values)
-                    list.Add(dao.ExecuteAsync(c, queries.UpdateSql<T>(), value));
-                int sum = 0;
-                foreach (var task in list)
-                    sum += await task;
-                return sum;
+        public Task<SortedList<TId, T>> Update(params T[] values) =>
+            ConnectionSource.FromConnectionAsync(async c => 
+            {
+                var results = new SortedList<TId, T>();
+                foreach (var result in await dao.ExecuteBatchAsync<T, TId>(c, queries.UpdateSql<T>(), values))
+                    results.Add(result.ID, result);
+                return results;
             });
 
         public async Task<int> Delete(params T[] values)
             => await DeleteById(values.Select(v => v.ID));
 
 
-        private async Task<int> DeleteById(IEnumerable<int> ids)
+        private async Task<int> DeleteById(IEnumerable<TId> ids)
             => await ConnectionSource.FromConnectionAsync(async c => {
                 var list = new List<Task<int>>();
                 foreach (var id in ids)
@@ -77,16 +72,16 @@ namespace Ooorm.Data.Sqlite
                 return sum;
             });
 
-        public async Task<int> Delete(Expression<Func<T, bool>> predicate)
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate), null)));
+        public Task<int> Delete(Expression<Func<T, bool>> predicate) =>
+            ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate), null)));
 
-        public async Task<int> Delete<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate, param), param)));
+        public Task<int> Delete<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) =>
+            ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate, param), param)));
 
-        public async Task<int> CreateTable()
-             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.CreateTableSql(), null)));
+        public Task<int> CreateTable() =>
+            ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.CreateTableSql(), null)));
 
-        public async Task<int> DropTable()
-            => await ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DropTableSql(), null)));
+        public Task<int> DropTable() =>
+            ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DropTableSql(), null)));
     }
 }

@@ -43,7 +43,7 @@ namespace Ooorm.Data.SqlServer
         public abstract T FromConnection<T>(Func<System.Data.SqlClient.SqlConnection, T> action);
         public abstract Task<T> FromConnectionAsync<T>(Func<System.Data.SqlClient.SqlConnection, Task<T>> action);
 
-        internal Task<Task<IEnumerable<IDbItem>>> FromConnectionAsync(Func<System.Data.SqlClient.SqlConnection, Task<object>> p)
+        internal Task<Task<List<IDbItem>>> FromConnectionAsync(Func<System.Data.SqlClient.SqlConnection, Task<object>> p)
         {
             throw new NotImplementedException();
         }

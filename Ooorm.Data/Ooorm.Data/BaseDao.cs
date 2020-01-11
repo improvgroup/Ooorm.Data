@@ -65,7 +65,7 @@ namespace Ooorm.Data
         protected static readonly object columnCacheLock = new object();
         protected static readonly Dictionary<Type, Dictionary<string, Column>> columnCache = new Dictionary<Type, Dictionary<string, Column>>();
 
-        public static void CheckColumnCache<T, TId>() where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public static void CheckColumnCache<T, TId>() where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             lock (columnCacheLock)
             {
@@ -74,7 +74,7 @@ namespace Ooorm.Data
             }
         }
 
-        public virtual IEnumerable<T> Read<T, TId>(TDbConnection connection, string sql, object parameter) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public virtual List<T> Read<T, TId>(TDbConnection connection, string sql, object parameter) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             using (var command = GetCommand(sql, connection))
             {
@@ -84,7 +84,7 @@ namespace Ooorm.Data
             }
         }
 
-        protected virtual IEnumerable<T> ExecuteReader<T, TId>(TDbCommand command) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        protected virtual List<T> ExecuteReader<T, TId>(TDbCommand command) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             using (var reader = (TDbReader)command.ExecuteReader())
             {
@@ -92,9 +92,9 @@ namespace Ooorm.Data
             }
         }
 
-        protected virtual List<T> ParseReader<T, TId>(TDbReader reader) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
-        {
-            var results = new List<T>();
+        protected virtual List<T> ParseReader<T, TId>(TDbReader reader) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        {            
+            var results = new List<T>(reader.RecordsAffected /* estimate of number of results */);
             while (reader.Read())
             {
                 var row = typeof(T).IsValueType ? default : Activator.CreateInstance<T>();

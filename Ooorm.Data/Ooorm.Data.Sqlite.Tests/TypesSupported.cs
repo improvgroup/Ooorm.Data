@@ -3,14 +3,14 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Ooorm.Data.Reflection;
 
 namespace Ooorm.Data.SqlServer.Tests
 {
     public class TypesSupported
     {
-        public class NullablesItem : IDbItem
-        {
-            public int ID { get; set; }
+        public class NullablesItem : IDbItem<NullablesItem, int>
+        {            
             public int? Value { get; set; }
             public DateTimeOffset? Time { get; set; }
             public string Text { get; set; }
@@ -31,11 +31,11 @@ namespace Ooorm.Data.SqlServer.Tests
                 var item4 = await new NullablesItem { Value = 2, Time = time }.WriteTo(db);
                 var item5 = await new NullablesItem { Text = "Content" }.WriteTo(db);
 
-                var itemsWithValue = await db.Read<NullablesItem>(r => r.Value != null);
+                var itemsWithValue = await db.Read<NullablesItem, int>(r => r.Value != null);
                 itemsWithValue.Should().ContainSingle(i => i.Value == 1);
                 itemsWithValue.Should().ContainSingle(i => i.Value == 2);
 
-                var itemsWithoutValue = await db.Read<NullablesItem>(r => r.Value == null);
+                var itemsWithoutValue = await db.Read<NullablesItem, int>(r => r.Value == null);
                 itemsWithoutValue.Should().ContainSingle(i => i.Time == time);
                 itemsWithoutValue.Should().ContainSingle(i => i.Text == "Content");
 

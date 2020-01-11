@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data.Volatile
 {
-    public class VolatileRepository<T> : ICrudRepository<T> where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+    public class VolatileRepository<T> : ICrudRepository<T> where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
     {
         protected class Bucket
         {
@@ -150,7 +150,7 @@ namespace Ooorm.Data.Volatile
             });
         }
 
-        public async Task<IEnumerable<T>> Read()
+        public async Task<List<T>> Read()
         {
             List<T> results = new List<T>();
             foreach (var bucket in Buckets.Values)
@@ -158,7 +158,7 @@ namespace Ooorm.Data.Volatile
             return results;
         }
 
-        public async Task<IEnumerable<object>> ReadUntyped() => (await Read()).Select(i => (object)i);
+        public async Task<List<object>> ReadUntyped() => (await Read()).Select(i => (object)i);
 
         public async Task<T> Read(int id)
         {
@@ -168,10 +168,10 @@ namespace Ooorm.Data.Volatile
             return result;
         }
 
-        public async Task<IEnumerable<T>> Read(Expression<Func<T, bool>> predicate)
+        public async Task<List<T>> Read(Expression<Func<T, bool>> predicate)
             => (await Read()).Where(predicate.Compile());
 
-        public async Task<IEnumerable<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
+        public async Task<List<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
         {
             var test = predicate.Compile();
             return (await Read()).Where(r => test(r, param));

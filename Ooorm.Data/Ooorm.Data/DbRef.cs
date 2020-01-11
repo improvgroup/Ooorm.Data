@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data
 {
-    public struct DbRef<T, TId> : IdConvertable<TId?> where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+    public struct DbRef<T, TId> : IdConvertable<TId?> where TId : struct, IEquatable<TId> where T : IDbItem<T, TId>
     {
         internal readonly Func<IDatabase> getDb;
 
@@ -42,7 +42,5 @@ namespace Ooorm.Data
         }
 
         public override int GetHashCode() => -1584136870 + EqualityComparer<TId?>.Default.GetHashCode(value);
-
-
     }
 }

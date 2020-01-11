@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Ooorm.Data.Sqlite
@@ -46,43 +45,67 @@ namespace Ooorm.Data.Sqlite
             }
         }
 
-        public async Task<long> ExecuteScalarAsync(System.Data.SQLite.SQLiteConnection connection, string sql, object parameter)
+        public async Task<T> ExecuteScalarAsync<T>(System.Data.SQLite.SQLiteConnection connection, string sql, T parameter)
         {
             using (var command = GetCommand(sql, connection))
-            {
+            {                
                 command.CommandText = sql;
                 AddParameters(command, sql, parameter);
-                return (long)(await command.ExecuteScalarAsync());
+                return (T)(await command.ExecuteScalarAsync());
             }
         }
 
-        public async Task<IEnumerable<T>> ReadAsync<T>(System.Data.SQLite.SQLiteConnection connection, string sql, object parameter) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public Task<T[]> ExecuteBatchAsync<T, TId>(System.Data.SQLite.SQLiteConnection connection, string sql, params T[] parameters) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        {                        
+            using (var command = GetCommand(sql, connection))
+            {
+                using (var transaction = connection.BeginTransaction())
+                {
+                    command.Transaction = transaction;
+                    command.CommandText = sql;
+                    foreach (var parameter in parameters)
+                        AddParameters(command, sql, parameter);                                            
+                    transaction.Commit();
+                }
+
+                return Task.Run(() => 
+                {
+                    T[] results = new T[parameters.Length];
+                    int item_number = 0;
+                    foreach (var result in ExecuteReader<T, TId>(command))
+                        results[item_number++] = result;
+                    return results;
+                });
+            }            
+        }
+
+        public async Task<List<T>> ReadAsync<T, TId>(System.Data.SQLite.SQLiteConnection connection, string sql, object parameter) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             using (var command = GetCommand(sql, connection))
             {
-                CheckColumnCache<T>();
+                CheckColumnCache<T, TId>();
                 AddParameters(command, sql, parameter);
-                return await ExecuteReaderAsync<T>(command);
+                return await ExecuteReaderAsync<T, TId>(command);
             }
         }
 
-        public async Task<IEnumerable<T>> ReadAsync<T>(System.Data.SQLite.SQLiteConnection connection, string sql, (string name, object value) parameter) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<List<T>> ReadAsync<T, TId>(System.Data.SQLite.SQLiteConnection connection, string sql, (string name, object value) parameter) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             using (var command = GetCommand(sql, connection))
             {
-                CheckColumnCache<T>();
+                CheckColumnCache<T, TId>();
                 AddParameters(command, sql, parameter);
-                return await ExecuteReaderAsync<T>(command);
+                return await ExecuteReaderAsync<T, TId>(command);
             }
         }
 
-        protected async Task<IEnumerable<T>> ExecuteReaderAsync<T>(SQLiteCommand command) where T : IDbItem<TId> where TId : struct, IEquatable<TId> =>
-            await Task.Run(() => ExecuteReader<T>(command));
+        protected Task<List<T>> ExecuteReaderAsync<T, TId>(SQLiteCommand command) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId> =>
+            Task.Run(() => ExecuteReader<T, TId>(command));
 
-        protected override IEnumerable<T> ExecuteReader<T>(SQLiteCommand command)
+        protected override List<T> ExecuteReader<T, TId>(SQLiteCommand command)
         {
             using (var reader = command.ExecuteReader(CommandBehavior.SequentialAccess))
-                return ParseReader<T>(reader);
+                return ParseReader<T, TId>(reader);
         }
     }
 }

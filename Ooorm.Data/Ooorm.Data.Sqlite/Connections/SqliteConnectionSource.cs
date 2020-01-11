@@ -43,11 +43,6 @@ namespace Ooorm.Data.Sqlite
         public abstract T FromConnection<T>(Func<System.Data.SQLite.SQLiteConnection, T> action);
         public abstract Task<T> FromConnectionAsync<T>(Func<System.Data.SQLite.SQLiteConnection, Task<T>> action);
 
-        internal Task<Task<IEnumerable<IDbItem>>> FromConnectionAsync(Func<System.Data.SQLite.SQLiteConnection, Task<object>> p)
-        {
-            throw new NotImplementedException();
-        }
-
         public abstract void Dispose();
 
         /// <summary>

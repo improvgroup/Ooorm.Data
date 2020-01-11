@@ -3,29 +3,27 @@ using System.Threading.Tasks;
 using Xunit;
 using System.Linq;
 using System;
+using Ooorm.Data.Reflection;
 
 namespace Ooorm.Data.SqlServer.Tests
 {
     public class LocalHostTests
     {
-        public class Doodad : IDbItem
-        {
-            public int ID { get; set; }
+        public class Doodad : IDbItem<Doodad, int>
+        {            
             public string Name { get; set; }
-            public DbRef<Widget> PrimaryWidgetId { get; set; }
+            public DbRef<Widget, int> PrimaryWidgetId { get; set; }
         }
 
-        public class Widget : IDbItem
-        {
-            public int ID { get; set; }
+        public class Widget : IDbItem<Widget, int>
+        {            
             public int Value { get; set; }
         }
 
-        public class WidgetDoodad : IDbItem
-        {
-            public int ID { get; set; }
-            public DbVal<Widget> WidgetId { get; set; }
-            public DbVal<Doodad> DoodadId { get; set; }
+        public class WidgetDoodad : IDbItem<WidgetDoodad, int>
+        {            
+            public DbVal<Widget, int> WidgetId { get; set; }
+            public DbVal<Doodad, int> DoodadId { get; set; }
             public bool Active { get; set; }
         }
 
@@ -34,7 +32,7 @@ namespace Ooorm.Data.SqlServer.Tests
         {
             await TestFixture.WithTempDb(async db =>
             {
-                await db.CreateTable<Widget>();
+                await db.CreateTable<Widget, int>();
             });
         }
 
@@ -49,20 +47,21 @@ namespace Ooorm.Data.SqlServer.Tests
                 var widget2 = new Widget { Value = 2 };
                 var widget3 = new Widget { Value = 4 };
 
-                var count = await db.Write(widget1, widget2, widget3);
+                var results = await db.Write<Widget, int>(widget1, widget2, widget3);
 
+                results.Count.Should().Be(3);
+                results.Keys.Should().Contain(new int[] { widget1.ID, widget2.ID, widget3.ID });
                 widget1.ID.Should().BeGreaterThan(0);
                 widget2.ID.Should().BeGreaterThan(0);
                 widget3.ID.Should().BeGreaterThan(0);
                 widget1.ID.Should().NotBe(widget2.ID);
-                widget2.ID.Should().NotBe(widget3.ID);
-                count.Should().Be(3);
+                widget2.ID.Should().NotBe(widget3.ID);                
 
-                var widgets = await db.Read<Widget>();
+                var widgets = await db.Read<Widget, int>();
                 foreach (var ab in widgets.Zip(new Widget[] { widget1, widget2, widget3 }, (a, b) => (a, b)))
                     ab.a.Should().BeEquivalentTo(ab.b);
 
-                (await db.Read<Widget>(widget2.ID)).Should().BeEquivalentTo(widget2);
+                (await db.Read<Widget, int>(widget2.ID)).Should().BeEquivalentTo(widget2);
 
                 var doodad1 = new Doodad
                 {
@@ -76,9 +75,9 @@ namespace Ooorm.Data.SqlServer.Tests
                     PrimaryWidgetId = widget3.In(db)
                 };
 
-                await db.Write(doodad1, doodad2);
+                await db.Write<Doodad, int>(doodad1, doodad2);
 
-                await db.Write(
+                await db.Write<WidgetDoodad, int>(
                     new WidgetDoodad
                     {
                         DoodadId = doodad1.In(db),
@@ -98,7 +97,7 @@ namespace Ooorm.Data.SqlServer.Tests
                         Active = true,
                     });
 
-                var linksToWidget2 = (await db.Read<WidgetDoodad, int?>((r, p) => r.WidgetId == p, widget2.ID)).ToList();
+                var linksToWidget2 = (await db.Read<WidgetDoodad, int?, int>((r, p) => r.WidgetId == p, widget2.ID)).ToList();
                 linksToWidget2.Count.Should().Be(2);
 
                 var first = await db.Dereference(linksToWidget2.First().DoodadId);

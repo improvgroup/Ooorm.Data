@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data
 {
-    public struct DbVal<T, TId> : IdConvertable<TId> where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+    public struct DbVal<T, TId> : IdConvertable<TId> where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
     {
         internal readonly Func<IDatabase> getDb;
 

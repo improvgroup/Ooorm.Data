@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Ooorm.Data.Reflection
 {
@@ -41,17 +42,17 @@ namespace Ooorm.Data.Reflection
             return attr != null;
         }
 
-        internal static IEnumerable<Column<T>> GetColumns<T, TId>(this T value, bool exceptId = false) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        internal static IEnumerable<Column<T>> GetColumns<T, TId>(this T value, bool exceptId = false) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => typeof(T).GetProperties(PROPS)
                     .Where(p => !p.HasAttribute<DbIgnoreAttribute>())
-                    .Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem<TId>.ID))) )
+                    .Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem<T, TId>.ID))) )
                     .Select(p => new Column<T>(p));
 
         public static IEnumerable<Column> GetColumns(this Type type, bool exceptId = false)
         {
             var props = type.GetProperties(PROPS).ToArray();
             var fields = props.Where(p => !p.HasAttribute<DbIgnoreAttribute>()).ToArray();
-            var notId = fields.Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem<int>.ID))) ).ToArray();
+            var notId = fields.Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(Param<int,int>.ID))) ).ToArray();
             var columns = notId.Select(p => new Column(p)).ToArray();
             return columns;
         }
@@ -63,5 +64,12 @@ namespace Ooorm.Data.Reflection
         internal static IEnumerable<Property> GetDataProperties(this Type type)
             => type.GetProperties(PROPS)
                     .Select(p => new Property(p));
+                    
+        /// <summary>
+        /// Creates a table for the specified type if it doesn't exist
+        /// </summary>
+        /// <param name="type">A CLR Type implementing IDbItem</param>
+        public static async Task CreateTableIn(this Type type, IDatabase db)
+            => await db.CreateTables(type);    
     }
 }

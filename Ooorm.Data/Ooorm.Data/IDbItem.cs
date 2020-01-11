@@ -7,66 +7,57 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data
 {
-    public abstract class IDbItem<TId> where TId : struct, IEquatable<TId>
+    public abstract class IDbItem<TSelf, TId> where TId : struct, IEquatable<TId> where TSelf : IDbItem<TSelf, TId>
     {
         internal bool IsNew { get; set; } = true;
-        public TId ID { get; set; }
-    }
-
-    public static class IDbItemExtensions
-    {
-        /// <summary>
-        /// Creates a table for the specified type if it doesn't exist
-        /// </summary>
-        /// <param name="type">A CLR Type implementing IDbItem</param>
-        public static async Task CreateTableIn(this Type type, IDatabase db)
-            => await db.CreateTables(type);
+        public TId ID { get; internal set; }
+    
+        public static implicit operator TSelf(IDbItem<TSelf, TId> a) => (TSelf)a;
 
         /// <summary>
         /// Writes a db item to the specified database and returns the result
         /// </summary>
-        public static async Task<T> WriteTo<T, TId>(this T item, IDatabase db) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
-        {
-            var rows = item.IsNew ? await db.Write<T, TId>(item) : await db.Update<T, TId>(item);
-            return item;
-        }
+        public async Task<TSelf> WriteTo(IDatabase db) =>
+            (this.IsNew ? (await db.Write<TSelf, TId>(this)) : (await db.Update<TSelf, TId>(this))).Single().Value;        
 
         /// <summary>
         /// Deletes all records from the db that match each non-default field in item
         /// </summary>
         /// <returns>Number of deleted records</returns>
-        public static async Task<int> DeleteMatchingFrom<T, TId>(this T item, IDatabase db = null) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
-            => item.IsNew ? await db.Delete<T, T, TId>(item.MatchingPredicate<T, TId>(), item) : await db.Delete<T, TId>(item);
+        public async Task<int> DeleteMatchingFrom(IDatabase db = null)
+            => this.IsNew ? await db.Delete<TSelf, TSelf, TId>(MatchingPredicate(), this) : await db.Delete<TSelf, TId>(this);
 
         /// <summary>
         /// Reads all records from the db that match each non-default field in item
         /// </summary>
         /// <returns>Matching records</returns>
-        public static async Task<IEnumerable<T>> ReadMatchingFrom<T, TId>(this T item, IDatabase db = null) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
-            => await db.Read<T, T, TId>(MatchingPredicate<T, TId>(item), item);
+        public async Task<List<TSelf>> ReadMatchingFrom(IDatabase db = null)
+            => await db.Read<TSelf, TSelf, TId>(MatchingPredicate(), this);
 
         /// <summary>
         /// Creates a query compatable predicate expression that matches all non-default fields of item
         /// </summary>
-        public static Expression<Func<T, T, bool>> MatchingPredicate<T, TId>(this T item) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        internal Expression<Func<TSelf, TSelf, bool>> MatchingPredicate()
         {
-            var row = Expression.Parameter(typeof(T), "row");
-            var p = Expression.Parameter(typeof(T), "p");
-            var matches = MatchExpressions<T, TId>(item, row, p);
+            var row = Expression.Parameter(typeof(TSelf), "row");
+            var p = Expression.Parameter(typeof(TSelf), "p");
+            var matches = MatchExpressions(row, p);
             if (!matches.Any())
-                return (Expression<Func<T, T, bool>>)Expression.Lambda(Expression.Equal(Expression.Constant(1), Expression.Constant(1)), row, p);
+                return (Expression<Func<TSelf, TSelf, bool>>)Expression.Lambda(Expression.Equal(Expression.Constant(1), Expression.Constant(1)), row, p);
             var last = matches.First();
             foreach (var exp in matches.Skip(1))
                 last = Expression.AndAlso(last, exp);
-            return (Expression<Func<T, T, bool>>)Expression.Lambda(last, row, p);
+            return (Expression<Func<TSelf, TSelf, bool>>)Expression.Lambda(last, row, p);
         }
 
-        private static IEnumerable<BinaryExpression> MatchExpressions<T, TId>(this T item, ParameterExpression row, ParameterExpression p) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        private IEnumerable<BinaryExpression> MatchExpressions(ParameterExpression row, ParameterExpression p)
         {
-            foreach (var column in item.GetColumns<T, TId>().Where(c => !c.IsDefaultOn(item)))
+            foreach (var column in ((TSelf)this).GetColumns<TSelf, TId>().Where(c => !c.IsDefaultOn(this)))
                 yield return Expression.Equal(Expression.MakeMemberAccess(row, column.Info), Expression.MakeMemberAccess(p, column.Info));
         }
 
-
-    }
+        public DbRef<TSelf, TId> In(IDatabase database) =>        
+            this.IsNew ? new DbRef<TSelf, TId>(this.ID, () => database) : throw new KeyNotFoundException("Cannot add reference reference to an item without a DB");
+        
+    }    
 }

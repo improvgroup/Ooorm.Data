@@ -8,7 +8,7 @@ using Ooorm.Data.QueryProviders;
 
 namespace Ooorm.Data.Sqlite
 {    
-    internal class SqliteQueryProvider<T> : IQueryProvider<T> where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+    internal class SqliteQueryProvider<T, TId> : IQueryProvider<T, TId> where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
     {
         protected readonly IExtendableTypeResolver types;
 
@@ -16,9 +16,9 @@ namespace Ooorm.Data.Sqlite
 
         protected static readonly Column[] COLUMNS = typeof(T).GetColumns().ToArray();
         protected static readonly Column[] NON_ID_COLUMNS = typeof(T).GetColumns(exceptId: true).ToArray();
-        protected static readonly Column ID_COLUMN = COLUMNS.Single(c => c.Info.HasAttribute<IdAttribute>() || c.PropertyName == nameof(IDbItem.ID));
+        protected static readonly Column ID_COLUMN = COLUMNS.Single(c => c.Info.HasAttribute<IdAttribute>() || c.PropertyName == nameof(IDbItem<T, TId>.ID));
         protected static readonly string TABLE = typeof(T).HasAttribute<TableAttribute>() ? $"[{typeof(T).GetCustomAttribute<TableAttribute>().Value}]" : $"[{typeof(T).Name}]";
-        protected static readonly string WHERE_ID = $"WHERE [{nameof(IDbItem.ID)}] = @Id;";
+        protected static readonly string WHERE_ID = $"WHERE [{nameof(IDbItem<T, TId>.ID)}] = @Id;";
         protected static readonly string DELETE_PREFIX = $"DELETE FROM {TABLE} ";
         protected static readonly string DELETE_WHERE_ID = DELETE_PREFIX + WHERE_ID;
         protected static readonly string UPDATE_PREFIX = $"UPDATE {TABLE} SET ";

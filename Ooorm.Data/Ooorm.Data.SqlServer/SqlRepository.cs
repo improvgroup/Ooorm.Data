@@ -9,7 +9,7 @@ namespace Ooorm.Data.SqlServer
     /// <summary>
     /// Generic Repository for Sql Server connections
     /// </summary>
-    public class SqlRepository<T> : ICrudRepository<T> where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+    public class SqlRepository<T> : ICrudRepository<T> where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
     {
         protected readonly SqlConnection ConnectionSource;
         private readonly SqlDao dao;
@@ -29,10 +29,10 @@ namespace Ooorm.Data.SqlServer
                 return set.Count;
             });
 
-        public async Task<IEnumerable<T>> Read()
+        public async Task<List<T>> Read()
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(), null)).ToList());
 
-        public async Task<IEnumerable<object>> ReadUntyped()
+        public async Task<List<object>> ReadUntyped()
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(), null)).Select(i => (object)i).ToList());
 
 
@@ -43,10 +43,10 @@ namespace Ooorm.Data.SqlServer
                 return results.Single();
             });
 
-        public async Task<IEnumerable<T>> Read(Expression<Func<T, bool>> predicate)
+        public async Task<List<T>> Read(Expression<Func<T, bool>> predicate)
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate), null)).ToList());
 
-        public async Task<IEnumerable<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
+        public async Task<List<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
             => await ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T>(c, queries.ReadSql(predicate, param), (predicate.Parameters[1].Name, param))).ToList());
 
 

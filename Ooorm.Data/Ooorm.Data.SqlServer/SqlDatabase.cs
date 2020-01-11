@@ -13,7 +13,7 @@ namespace Ooorm.Data.SqlServer
 
         private readonly Dictionary<Type, object> repositories = new Dictionary<Type, object>();
 
-        private ICrudRepository<T> Repos<T>() where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        private ICrudRepository<T> Repos<T>() where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => (ICrudRepository<T>)(repositories.ContainsKey(typeof(T)) ? repositories[typeof(T)] : (repositories[typeof(T)] = new SqlRepository<T>(source, () => this)));
 
         private ICrudRepository Repos(Type type)
@@ -23,46 +23,46 @@ namespace Ooorm.Data.SqlServer
 
         public SqlDatabase(SqlConnection source) => (this.source, dao) = (source, new SqlDao(() => this));
 
-        public async Task<int> Write<T>(params T[] values) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<int> Write<T>(params T[] values) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().Write(values);
 
-        public async Task<int> Delete<T>(params T[] values) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<int> Delete<T>(params T[] values) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().Delete(values);
 
-        public async Task<int> Delete<T>(Expression<Func<T, bool>> predicate) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<int> Delete<T>(Expression<Func<T, bool>> predicate) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().Delete(predicate);
 
-        public async Task<int> Delete<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<int> Delete<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().Delete(predicate, param);
 
-        public async Task<IEnumerable<T>> Read<T>() where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<List<T>> Read<T>() where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().Read();
 
-        public async Task<T> Read<T>(int id) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<T> Read<T>(int id) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().Read(id);
 
-        public async Task<IEnumerable<T>> Read<T>(Expression<Func<T, bool>> predicate) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<List<T>> Read<T>(Expression<Func<T, bool>> predicate) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().Read(predicate);
 
-        public async Task<IEnumerable<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<List<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().Read(predicate, param);
 
-        public async Task<IEnumerable<object>> Read(Type type)
+        public async Task<List<object>> Read(Type type)
             => await Repos(type).ReadUntyped();
 
-        public async Task<int> Update<T>(params T[] values) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<int> Update<T>(params T[] values) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().Update(values);
 
-        public async Task<T> Dereference<T>(DbVal<T> value) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<T> Dereference<T>(DbVal<T> value) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().Read(value);
 
-        public async Task<(bool exists, T value)> Dereference<T>(DbRef<T> value) where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task<(bool exists, T value)> Dereference<T>(DbRef<T> value) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => value.IsNull ? (false, default) : (true, await Repos<T>().Read(((int?)value).Value));
 
-        public async Task CreateTable<T>() where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task CreateTable<T>() where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().CreateTable();
 
-        public async Task DropTable<T>() where T : IDbItem<TId> where TId : struct, IEquatable<TId>
+        public async Task DropTable<T>() where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
             => await Repos<T>().DropTable();
 
         public async Task CreateTables(params Type[] tables)
