@@ -26,6 +26,7 @@ namespace Ooorm.Data
         private readonly Dictionary<Type, TypeHandler> _providedHandlers = new Dictionary<Type, TypeHandler>();
 
         private void RegisterBaseHandler<TClr, TDb>(TypeHandler<TClr, TDb> handler) => _baseHandlers[typeof(TClr)] = handler;
+        
 
         protected void RegisterHandler<TClr, TDb>(TypeHandler<TClr, TDb> handler) => _providedHandlers[typeof(TClr)] = handler;
 
@@ -35,7 +36,7 @@ namespace Ooorm.Data
         public ExtendableTypeProvider(Func<IDatabase> db)
         {
             this.database = db;
-            RegisterBaseHandler(new BooleanHandler());            
+            RegisterBaseHandler(new BooleanHandler());   
             RegisterBaseHandler(new Int8Handler());
             RegisterBaseHandler(new UInt8Handler());
             RegisterBaseHandler(new Int16Handler());

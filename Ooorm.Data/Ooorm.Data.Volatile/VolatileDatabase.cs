@@ -51,28 +51,32 @@ namespace Ooorm.Data.Volatile
         public async Task<IEnumerable<object>> Read(Type type)
             => await Repos(type).ReadUntyped();
 
-        public async Task CreateTable<T>() where T : IDbItem
+        public Task CreateTable<T>() where T : IDbItem
         {
             Repos<T>();
+            return Task.CompletedTask;
         }
 
-        public async Task CreateTables(params Type[] tables)
+        public Task CreateTables(params Type[] tables)
         {
             foreach (var type in tables)
                 Repos(type);
+            return Task.CompletedTask;
         }
 
-        public async Task DropTable<T>() where T : IDbItem
+        public Task DropTable<T>() where T : IDbItem
         {
             if (repositories.ContainsKey(typeof(T)))
                 repositories.Remove(typeof(T));
+            return Task.CompletedTask;
         }
 
-        public async Task DropTables(params Type[] tables)
+        public Task DropTables(params Type[] tables)
         {
             foreach (var type in tables)
                 if (repositories.ContainsKey(type))
                     repositories.Remove(type);
+            return Task.CompletedTask;
         }
 
         public VolatileDatabase()

@@ -35,7 +35,8 @@ namespace Ooorm.Data.Volatile
 
         protected Bucket GetOrAddBucket(int id)
         {
-            if (TryGetBucket(id, out Bucket bucket));
+            if (TryGetBucket(id, out Bucket bucket))
+                return bucket;
             else
             {
                 int start = id / BUCKET_SIZE;
@@ -44,8 +45,8 @@ namespace Ooorm.Data.Volatile
                 {
                     Buckets[start] = bucket;
                 }
-            }
-            return bucket;
+                return bucket;
+            }            
         }
 
         protected Dictionary<Bucket, List<int>> GetBuckets(IEnumerable<int> ids)
@@ -80,13 +81,13 @@ namespace Ooorm.Data.Volatile
 
         public VolatileRepository(Func<IDatabase> db, bool manageIds = true) => (database, this.manageIds) = (db, manageIds);
 
-        public async Task<int> CreateTable() => Buckets.Count > 0 ? 0 : 1;
+        public Task<int> CreateTable() => Task.FromResult(Buckets.Count > 0 ? 0 : 1);
 
-        public async Task<int> DropTable()
+        public Task<int> DropTable()
         {
             int count = Buckets.Count > 0 ? 1 : 0;
             Buckets.Clear();
-            return count;
+            return Task.FromResult(count);
         }
 
         public async Task<int> Delete(params T[] values) => await Delete(values.Select(v => v.ID));
