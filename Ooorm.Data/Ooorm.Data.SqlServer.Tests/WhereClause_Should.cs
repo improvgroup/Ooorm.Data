@@ -6,7 +6,7 @@ namespace Ooorm.Data.SqlServer.Tests
 {
     public class WhereClause_Should
     {
-        private class DbModel : IDbItem
+        private class DbModel : DbItem
         {
             public int ID { get; set; }
             public string Key { get; set; }

@@ -8,7 +8,7 @@ namespace Ooorm.Data.SqlServer.Tests
 {
     public class TypesSupported
     {
-        public class NullablesItem : IDbItem
+        public class NullablesItem : DbItem
         {
             public int ID { get; set; }
             public int? Value { get; set; }

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data
 {
-    public struct DbRef<T, TId> : IdConvertable<TId?> where TId : struct, IEquatable<TId> where T : IDbItem<T, TId>
+    public struct DbRef<T, TId> : IdConvertable<TId?> where TId : struct, IEquatable<TId> where T : DbItem<T, TId>
     {
         internal readonly Func<IDatabase> getDb;
 

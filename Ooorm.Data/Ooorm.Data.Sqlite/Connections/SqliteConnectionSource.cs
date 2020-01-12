@@ -21,17 +21,15 @@ namespace Ooorm.Data.Sqlite
         {
             get
             {
-                using (var connection = new SQLiteConnection(connectionString))
+                using var connection = new SQLiteConnection(connectionString);
+                try
                 {
-                    try
-                    {
-                        connection.Open();
-                        return true;
-                    }
-                    catch (SQLiteException)
-                    {
-                        return false;
-                    }
+                    connection.Open();
+                    return true;
+                }
+                catch (SQLiteException)
+                {
+                    return false;
                 }
             }
         }

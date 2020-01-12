@@ -28,52 +28,44 @@ namespace Ooorm.Data.SqlServer
 
         public async Task<int> ExecuteAsync(System.Data.SqlClient.SqlConnection connection, string sql, object parameter)
         {
-            using (var command = GetCommand(sql, connection))
-            {
-                command.CommandText = sql;
-                AddParameters(command, sql, parameter);
-                var result = await command.ExecuteNonQueryAsync();
-                return result;
-            }
+            using var command = GetCommand(sql, connection);
+            command.CommandText = sql;
+            AddParameters(command, sql, parameter);
+            var result = await command.ExecuteNonQueryAsync();
+            return result;
         }
 
         public async Task<int> ExecuteScalarAsync(System.Data.SqlClient.SqlConnection connection, string sql, object parameter)
         {
-            using (var command = GetCommand(sql, connection))
-            {
-                command.CommandText = sql;
-                AddParameters(command, sql, parameter);
-                return (int)(await command.ExecuteScalarAsync());
-            }
+            using var command = GetCommand(sql, connection);
+            command.CommandText = sql;
+            AddParameters(command, sql, parameter);
+            return (int)(await command.ExecuteScalarAsync());
         }
 
-        public async Task<List<T>> ReadAsync<T>(System.Data.SqlClient.SqlConnection connection, string sql, object parameter) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<List<T>> ReadAsync<T>(System.Data.SqlClient.SqlConnection connection, string sql, object parameter) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
-            using (var command = GetCommand(sql, connection))
-            {
-                CheckColumnCache<T>();
-                AddParameters(command, sql, parameter);
-                return await ExecuteReaderAsync<T>(command);
-            }
+            using var command = GetCommand(sql, connection);
+            CheckColumnCache<T>();
+            AddParameters(command, sql, parameter);
+            return await ExecuteReaderAsync<T>(command);
         }
 
-        public async Task<List<T>> ReadAsync<T>(System.Data.SqlClient.SqlConnection connection, string sql, (string name, object value) parameter) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<List<T>> ReadAsync<T>(System.Data.SqlClient.SqlConnection connection, string sql, (string name, object value) parameter) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
-            using (var command = GetCommand(sql, connection))
-            {
-                CheckColumnCache<T>();
-                AddParameters(command, sql, parameter);
-                return await ExecuteReaderAsync<T>(command);
-            }
+            using var command = GetCommand(sql, connection);
+            CheckColumnCache<T>();
+            AddParameters(command, sql, parameter);
+            return await ExecuteReaderAsync<T>(command);
         }
 
-        protected async Task<List<T>> ExecuteReaderAsync<T>(SqlCommand command) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId> =>
+        protected async Task<List<T>> ExecuteReaderAsync<T>(SqlCommand command) where T : DbItem<T, TId> where TId : struct, IEquatable<TId> =>
             await Task.Run(() => ExecuteReader<T>(command));
 
         protected override IEnumerable<T> ExecuteReader<T>(SqlCommand command)
         {
-            using (var reader = command.ExecuteReader(CommandBehavior.SequentialAccess))
-                return ParseReader<T>(reader);
+            using var reader = command.ExecuteReader(CommandBehavior.SequentialAccess);
+            return ParseReader<T>(reader);
         }
     }
 }

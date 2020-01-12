@@ -5,7 +5,7 @@ namespace Ooorm.Data.Sqlite.Tests
 {
     public class WhereClause_Should
     {
-        private class DbModel : IDbItem<DbModel, int>
+        private class DbModel : DbItem<DbModel, int>
         {            
             public string Key { get; set; }
             public int Value { get; set; }

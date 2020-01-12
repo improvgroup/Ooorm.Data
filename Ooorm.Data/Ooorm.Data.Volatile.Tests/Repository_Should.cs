@@ -8,7 +8,7 @@ namespace Ooorm.Data.Volatile.Tests
 {
     public class Repository_Should
     {
-        public class Item : IDbItem
+        public class Item : DbItem
         {
             public int ID { get; set; }
             public string Value { get; set; }

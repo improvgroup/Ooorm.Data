@@ -8,20 +8,20 @@ namespace Ooorm.Data.SqlServer.Tests
 {
     public class LocalHostTests
     {
-        public class Doodad : IDbItem
+        public class Doodad : DbItem
         {
             public int ID { get; set; }
             public string Name { get; set; }
             public DbRef<Widget> PrimaryWidgetId { get; set; }
         }
 
-        public class Widget : IDbItem
+        public class Widget : DbItem
         {
             public int ID { get; set; }
             public int Value { get; set; }
         }
 
-        public class WidgetDoodad : IDbItem
+        public class WidgetDoodad : DbItem
         {
             public int ID { get; set; }
             public DbVal<Widget> WidgetId { get; set; }

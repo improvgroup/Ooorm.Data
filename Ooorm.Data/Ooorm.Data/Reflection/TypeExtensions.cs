@@ -42,10 +42,10 @@ namespace Ooorm.Data.Reflection
             return attr != null;
         }
 
-        internal static IEnumerable<Column<T>> GetColumns<T, TId>(this T value, bool exceptId = false) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        internal static IEnumerable<Column<T>> GetColumns<T, TId>(this T value, bool exceptId = false) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
             => typeof(T).GetProperties(PROPS)
                     .Where(p => !p.HasAttribute<DbIgnoreAttribute>())
-                    .Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(IDbItem<T, TId>.ID))) )
+                    .Where(p => !(exceptId && (p.HasAttribute<IdAttribute>() || p.Name == nameof(DbItem<T, TId>.ID))) )
                     .Select(p => new Column<T>(p));
 
         public static IEnumerable<Column> GetColumns(this Type type, bool exceptId = false)

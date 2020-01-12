@@ -10,7 +10,7 @@ namespace Ooorm.Data.Sqlite
     /// Generic Repository for Sql Server connections
     /// </summary>
     public class SqliteRepository<T, TId> : ICrudRepository<T, TId> 
-        where T : IDbItem<T, TId> 
+        where T : DbItem<T, TId> 
         where TId : struct, IEquatable<TId>
     {
         protected readonly SqliteConnection ConnectionSource;
@@ -23,9 +23,13 @@ namespace Ooorm.Data.Sqlite
         public Task<SortedList<TId, T>> Write(params T[] values) =>
             ConnectionSource.FromConnectionAsync(async c => {
                 var results = new SortedList<TId, T>();
-                
-                foreach(var result in await dao.ExecuteBatchAsync<T, TId>(c, queries.WriteSql(), values))                
-                    results.Add(result.ID, result);                
+
+                foreach (var value in values)
+                {
+                    var result = (await dao.ReadAsync<T, TId>(c, queries.WriteSql(), value)).Single();
+                    value.ID = result.ID;
+                    results.Add(result.ID, result);
+                }                
                 
                 return results;
             });
@@ -54,8 +58,13 @@ namespace Ooorm.Data.Sqlite
             ConnectionSource.FromConnectionAsync(async c => 
             {
                 var results = new SortedList<TId, T>();
-                foreach (var result in await dao.ExecuteBatchAsync<T, TId>(c, queries.UpdateSql<T>(), values))
+                foreach (var value in values)
+                {
+                    var result = (await dao.ReadAsync<T, TId>(c, queries.UpdateSql<T>(), value)).Single();
+                    value.ID = result.ID;
                     results.Add(result.ID, result);
+                }
+                
                 return results;
             });
 

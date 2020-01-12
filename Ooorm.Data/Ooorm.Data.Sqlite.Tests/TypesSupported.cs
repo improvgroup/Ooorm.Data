@@ -9,7 +9,7 @@ namespace Ooorm.Data.Sqlite.Tests
 {
     public class TypesSupported
     {
-        public class NullablesItem : IDbItem<NullablesItem, int>
+        public class NullablesItem : DbItem<NullablesItem, int>
         {            
             public int? Value { get; set; }
             public DateTimeOffset? Time { get; set; }

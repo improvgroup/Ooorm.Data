@@ -8,18 +8,18 @@ namespace Ooorm.Data.Sqlite.Tests
 {
     public class LocalHostTests
     {
-        public class Doodad : IDbItem<Doodad, int>
+        public class Doodad : DbItem<Doodad, int>
         {            
             public string Name { get; set; }
             public DbRef<Widget, int> PrimaryWidgetId { get; set; }
         }
 
-        public class Widget : IDbItem<Widget, int>
+        public class Widget : DbItem<Widget, int>
         {            
             public int Value { get; set; }
         }
 
-        public class WidgetDoodad : IDbItem<WidgetDoodad, int>
+        public class WidgetDoodad : DbItem<WidgetDoodad, long>
         {            
             public DbVal<Widget, int> WidgetId { get; set; }
             public DbVal<Doodad, int> DoodadId { get; set; }
@@ -40,9 +40,9 @@ namespace Ooorm.Data.Sqlite.Tests
         {
             await TestFixture.WithTempDb(async db =>
             {
-                await db.CreateTable<Widget, int>();
-                await db.CreateTable<Doodad, int>();
-                await db.CreateTable<WidgetDoodad, int>();
+                await Widget.CreateTable(db);
+                await Doodad.CreateTable(db);
+                await WidgetDoodad.CreateTable(db);
 
                 var widget1 = new Widget { Value = 1 };
                 var widget2 = new Widget { Value = 2 };
@@ -62,43 +62,50 @@ namespace Ooorm.Data.Sqlite.Tests
                 foreach (var ab in widgets.Zip(new Widget[] { widget1, widget2, widget3 }, (a, b) => (a, b)))
                     ab.a.Should().BeEquivalentTo(ab.b);
 
-                (await db.Read<Widget, int>(widget2.ID)).Should().BeEquivalentTo(widget2);
+                var widget2_read = await db.Read<Widget, int>(widget2.ID);
+                widget2_read.Should().BeEquivalentTo(widget2);
 
-                var doodad1 = new Doodad
-                {
-                    Name = "First",
-                    PrimaryWidgetId = widget1.In(db)
-                };
+                var doodad1 = 
+                    await new Doodad
+                    {
+                        Name = "First",
+                        PrimaryWidgetId = widget1.In(db)
+                    }
+                    .WriteTo(db);
 
-                var doodad2 = new Doodad
-                {
-                    Name = "Second",
-                    PrimaryWidgetId = widget3.In(db)
-                };
-
-                await db.Write<Doodad, int>(doodad1, doodad2);
-
-                await db.Write<WidgetDoodad, int>(
-                    new WidgetDoodad
+                var doodad2 = 
+                    await new Doodad
+                    {
+                        Name = "Second",
+                        PrimaryWidgetId = widget3.In(db)
+                    }
+                    .WriteTo(db);
+                               
+                await new WidgetDoodad
                     {
                         DoodadId = doodad1.In(db),
                         WidgetId = widget1.In(db),
                         Active = true,
-                    },
-                    new WidgetDoodad
+                    }
+                    .WriteTo(db);
+
+                await new WidgetDoodad
                     {
                         DoodadId = doodad2.In(db),
                         WidgetId = widget2.In(db),
                         Active = true,
-                    },
-                    new WidgetDoodad
+                    }
+                    .WriteTo(db);
+
+                await new WidgetDoodad
                     {
                         DoodadId = doodad1.In(db),
                         WidgetId = widget2.In(db),
                         Active = true,
-                    });
+                    }
+                    .WriteTo(db);
 
-                var linksToWidget2 = (await db.Read<WidgetDoodad, int?, int>((r, p) => r.WidgetId == p, widget2.ID)).ToList();
+                var linksToWidget2 = await WidgetDoodad.Read<long?>((r, p) => r.WidgetId == p).With(widget2.ID).From(db);                
                 linksToWidget2.Count.Should().Be(2);
 
                 var first = await db.Dereference(linksToWidget2.First().DoodadId);
@@ -118,9 +125,9 @@ namespace Ooorm.Data.Sqlite.Tests
         {
             await TestFixture.WithTempDb(async db =>
             {
-                await db.CreateTable<Widget, int>();
-                await db.CreateTable<Doodad, int>();
-                await db.CreateTable<WidgetDoodad, int>();
+                await Widget.CreateTable(db);
+                await Doodad.CreateTable(db);
+                await WidgetDoodad.CreateTable(db);
 
                 var w1 = await new Widget { Value = 100 }.WriteTo(db);
                 var w2 = await new Widget { Value = 200 }.WriteTo(db);
@@ -128,6 +135,7 @@ namespace Ooorm.Data.Sqlite.Tests
                 await new Doodad { Name = "A", PrimaryWidgetId = w1.In(db) }.WriteTo(db);
                 await new Doodad { Name = "B", PrimaryWidgetId = w2.In(db) }.WriteTo(db);
                 await new Doodad { Name = "C", PrimaryWidgetId = w2.In(db) }.WriteTo(db);
+
 
                 var a = (await new Doodad { Name = "A" }.ReadMatchingFrom(db)).Single();
 

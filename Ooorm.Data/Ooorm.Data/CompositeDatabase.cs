@@ -24,7 +24,7 @@ namespace Ooorm.Data
                 backTypes.Add(type);
         }
 
-        public async Task CreateTable<T, TId>() where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task CreateTable<T, TId>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 await back.CreateTable<T, TId>();
@@ -41,7 +41,7 @@ namespace Ooorm.Data
                     await front.CreateTables(type);
         }
 
-        public async Task<int> Delete<T, TId>(params T[] values) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<int> Delete<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 return await back.Delete<T, TId>(values);
@@ -49,7 +49,7 @@ namespace Ooorm.Data
                 return await front.Delete<T, TId>(values);
         }
 
-        public async Task<int> Delete<T, TId>(Expression<Func<T, bool>> predicate) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<int> Delete<T, TId>(Expression<Func<T, bool>> predicate) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 return await back.Delete<T, TId>(predicate);
@@ -57,7 +57,7 @@ namespace Ooorm.Data
                 return await front.Delete<T, TId>(predicate);
         }
 
-        public async Task<int> Delete<T, TParam, TId>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<int> Delete<T, TParam, TId>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 return await back.Delete<T, TParam, TId>(predicate, param);
@@ -65,7 +65,7 @@ namespace Ooorm.Data
                 return await front.Delete<T, TParam, TId>(predicate, param);
         }
 
-        public async Task<T> Dereference<T, TId>(DbVal<T, TId> value) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<T> Dereference<T, TId>(DbVal<T, TId> value) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 return await back.Dereference(value);
@@ -73,7 +73,7 @@ namespace Ooorm.Data
                 return await front.Dereference(value);
         }
 
-        public async Task<(bool exists, T value)> Dereference<T, TId>(DbRef<T, TId> value) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<(bool exists, T value)> Dereference<T, TId>(DbRef<T, TId> value) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 return await back.Dereference(value);
@@ -81,7 +81,7 @@ namespace Ooorm.Data
                 return await front.Dereference(value);
         }
 
-        public async Task DropTable<T, TId>() where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task DropTable<T, TId>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 await back.DropTable<T, TId>();
@@ -98,7 +98,7 @@ namespace Ooorm.Data
                     await front.DropTables(type);
         }
 
-        public async Task<List<T>> Read<T, TId>() where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<List<T>> Read<T, TId>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 return await back.Read<T, TId>();
@@ -106,7 +106,7 @@ namespace Ooorm.Data
                 return await front.Read<T, TId>();
         }
 
-        public async Task<List<T>> Read<T, TId>(Expression<Func<T, bool>> predicate) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<List<T>> Read<T, TId>(Expression<Func<T, bool>> predicate) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 return await back.Read<T, TId>(predicate);
@@ -114,7 +114,7 @@ namespace Ooorm.Data
                 return await front.Read<T, TId>(predicate);
         }
 
-        public async Task<List<T>> Read<T, TParam, TId>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<List<T>> Read<T, TParam, TId>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 return await back.Read<T, TParam, TId>(predicate, param);
@@ -122,7 +122,7 @@ namespace Ooorm.Data
                 return await front.Read<T, TParam, TId>(predicate, param);
         }
 
-        public async Task<T> Read<T, TId>(TId id) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<T> Read<T, TId>(TId id) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 return await back.Read<T, TId>(id);
@@ -138,7 +138,7 @@ namespace Ooorm.Data
                 return await front.Read(type);
         }
 
-        public async Task<SortedList<TId, T>> Update<T, TId>(params T[] values) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<SortedList<TId, T>> Update<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 return await back.Update<T, TId>(values);
@@ -146,7 +146,7 @@ namespace Ooorm.Data
                 return await front.Update<T, TId>(values);
         }
 
-        public async Task<SortedList<TId, T>> Write<T, TId>(params T[] values) where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<SortedList<TId, T>> Write<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
                 return await back.Write<T, TId>(values);

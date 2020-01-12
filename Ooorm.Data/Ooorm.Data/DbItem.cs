@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data
 {
-    public abstract class IDbItem<TSelf, TId> where TId : struct, IEquatable<TId> where TSelf : IDbItem<TSelf, TId>
+    public abstract class DbItem<TSelf, TId> where TId : struct, IEquatable<TId> where TSelf : DbItem<TSelf, TId>
     {
         internal bool IsNew { get; set; } = true;
         public TId ID { get; internal set; }
     
-        public static implicit operator TSelf(IDbItem<TSelf, TId> a) => (TSelf)a;
+        public static implicit operator TSelf(DbItem<TSelf, TId> a) => (TSelf)a;
 
         /// <summary>
         /// Writes a db item to the specified database and returns the result
@@ -57,7 +57,35 @@ namespace Ooorm.Data
         }
 
         public DbRef<TSelf, TId> In(IDatabase database) =>        
-            this.IsNew ? new DbRef<TSelf, TId>(this.ID, () => database) : throw new KeyNotFoundException("Cannot add reference reference to an item without a DB");
+            IsNew ? new DbRef<TSelf, TId>(ID, () => database) : throw new KeyNotFoundException("Cannot add reference reference to an item without a DB");
+        
+        public static Task CreateTable(IDatabase database) => database.CreateTable<TSelf, TId>();
+
+        public static Task<List<TSelf>> ReadFrom(IDatabase database) => database.Read<TSelf, TId>();
+
+        public class FromOp<T>
+        {
+            private readonly Func<IDatabase, Task<T>> _operation;
+
+            public FromOp(Func<IDatabase, Task<T>> operation) => _operation = operation;
+
+            public Task<T> From(IDatabase db) => _operation(db);
+        }
+
+        public static FromOp<TSelf> ReadById(TId id) => new FromOp<TSelf>(db => db.Read<TSelf, TId>(id));
+
+        public static FromOp<List<TSelf>> Read(Expression<Func<TSelf, bool>> predicate) => new FromOp<List<TSelf>>(db => db.Read<TSelf, TId>(predicate));
+
+        public class ParamOp<TParam>
+        {
+            private readonly Expression<Func<TSelf, TParam, bool>> _predicate;
+            
+            public ParamOp(Expression<Func<TSelf, TParam, bool>> predicate) => _predicate = predicate;
+
+            public FromOp<List<TSelf>> With(TParam param) => new FromOp<List<TSelf>>(db => db.Read<TSelf, TParam, TId>(_predicate, param));
+        }
+
+        public static ParamOp<TParam> Read<TParam>(Expression<Func<TSelf, TParam, bool>> predicate) => new ParamOp<TParam>(predicate);
         
     }    
 }

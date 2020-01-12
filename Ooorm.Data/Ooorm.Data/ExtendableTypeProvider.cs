@@ -122,8 +122,10 @@ namespace Ooorm.Data
         public bool IsReference(Type clrType) => IsDbVal(clrType) || IsDbRef(clrType);
 
         public bool IsDbValueType(Type clrType)
-            => (clrType.IsGenericType && (clrType == typeof(DbRef<,>).MakeGenericType(clrType.GenericTypeArguments) || clrType == typeof(DbVal<,>).MakeGenericType(clrType.GenericTypeArguments)))
-                    || HasMapping(clrType);
+            => (clrType.IsGenericType 
+                && (clrType == typeof(DbRef<,>).MakeGenericType(clrType.GenericTypeArguments) 
+                || clrType == typeof(DbVal<,>).MakeGenericType(clrType.GenericTypeArguments)))
+            || HasMapping(clrType);
 
         private bool HasMapping(Type clrType)
             => _baseHandlers.ContainsKey(clrType) || _providedHandlers.ContainsKey(clrType);

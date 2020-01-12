@@ -26,7 +26,7 @@ EXEC('DROP DATABASE [{name}]');
 END;";
     }
 
-    internal class SqlServerQueryProvider<T> : SqlServerQueryProvider, IQueryProvider<T> where T : IDbItem<T, TId> where TId : struct, IEquatable<TId>
+    internal class SqlServerQueryProvider<T> : SqlServerQueryProvider, IQueryProvider<T> where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
     {
         protected readonly IExtendableTypeResolver types;
 
@@ -34,9 +34,9 @@ END;";
 
         protected static readonly Column[] COLUMNS = typeof(T).GetColumns().ToArray();
         protected static readonly Column[] NON_ID_COLUMNS = typeof(T).GetColumns(exceptId: true).ToArray();
-        protected static readonly Column ID_COLUMN = COLUMNS.Single(c => c.Info.HasAttribute<IdAttribute>() || c.PropertyName == nameof(IDbItem.ID));
+        protected static readonly Column ID_COLUMN = COLUMNS.Single(c => c.Info.HasAttribute<IdAttribute>() || c.PropertyName == nameof(DbItem.ID));
         protected static readonly string TABLE = typeof(T).HasAttribute<TableAttribute>() ? $"[{typeof(T).GetCustomAttribute<TableAttribute>().Value}]" : $"[{typeof(T).Name}]";
-        protected static readonly string WHERE_ID = $"WHERE [{nameof(IDbItem.ID)}] = @Id;";
+        protected static readonly string WHERE_ID = $"WHERE [{nameof(DbItem.ID)}] = @Id;";
         protected static readonly string DELETE_PREFIX = $"DELETE FROM {TABLE} ";
         protected static readonly string DELETE_WHERE_ID = DELETE_PREFIX + WHERE_ID;
         protected static readonly string UPDATE_PREFIX = $"UPDATE {TABLE} SET ";
