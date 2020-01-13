@@ -35,8 +35,8 @@ var db = new SqlDatabase(SqlServerConnectionSource.CreateSharedSource("Server=lo
 
 Create a table
 ```
-// classes implemeting IDbItem define tables
-class Person : DbItem<Person, int> // implement IDbItem
+// Defines a table named Person with an Int32 ID and 2 string columns
+class Person : DbItem<Person, int>
 {    
     public string Name { get; set; }
     public string FavoritePizza { get; set; }
@@ -50,11 +50,11 @@ Create, read, update, and delete a record
 // create a new record and write it to a database
 var bob = await new Person{ Name = "Bob", FavoritePizza = "Veggie" }.WriteTo(db);
 
-var bobFromDb = await Person.ReadById(bob.ID).From(db);
+var alsoBob = await Person.ReadById(bob.ID).From(db);
 var allPeople = await Person.ReadAllFrom(db);
 
 // expression converted to parameterized query
-var veggiePizzaEaters = await Person.Read((row, pizza) => row.FavoritePizza == pizza).With("Veggie").From(db);
+var veggiePizzaEaters = await Person.ReadWhere((row, pizza) => row.FavoritePizza == pizza).With("Veggie").From(db);
 
 // update the record
 bob.FavoritePizza = "Taco";
