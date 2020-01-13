@@ -8,8 +8,12 @@ Work in progress relation DB access library for C#.
  * Strongly typed code-first query and schema generation, so that you can confidently use IDE refactoring tools
  * Chosen database is irrelevant to consuming code (adapters currently implemented for Sqlite and MS Sql Server)
  * Simple db mocking for tests with in-memory database that supports all library features
+ * Manage multiple databases under one umbrella with decorator types like `CompositeDatabase` and `ReadOnlyDatabase`
+ 
  [Future]
- * Tooling for automatically generating migration projects and web api projects from entity model assemblies
+ * Create tooling for automatically generating migration projects and web api projects from entity model assemblies
+ * Support IAsyncEnumerable and further reduce use of reflection by using code generation
+ * Implement joins, batching, and hybrid keys 
 
 ## Example
 
