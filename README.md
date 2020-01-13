@@ -1,9 +1,9 @@
 # Ooorm.Data
 
-Work in progress relation DB access library for C#.
+Work in progress relational DB access library for C#.
 
 ## Goals: (listed aproximately in order of achievement level)
- * "Thin" abstraction layer, maintain the same relation representation of your data in your database and your entity classes, rather than implementing a document database on top of a relational one
+ * "Thin" abstraction layer, maintain the same relational representation of your data in your database and your entity classes, rather than implementing a document database on top of a relational one
  * Fluent api design to make reading db access code easier 
  * Strongly typed code-first query and schema generation, so that you can confidently use IDE refactoring tools
  * Chosen database is irrelevant to consuming code (adapters currently implemented for Sqlite and MS Sql Server)
@@ -35,7 +35,7 @@ var db = new SqlDatabase(SqlServerConnectionSource.CreateSharedSource("Server=lo
 
 Create a table
 ```
-// Defines a table named Person with an Int32 ID and 2 string columns
+// Defines a table schema named Person with an Int32 ID and 2 string columns
 class Person : DbItem<Person, int>
 {    
     public string Name { get; set; }
