@@ -1,4 +1,3 @@
-using Ooorm.Data.QueryProviders;
 using Xunit;
 using FluentAssertions;
 
@@ -6,17 +5,15 @@ namespace Ooorm.Data.SqlServer.Tests
 {
     public class WhereClause_Should
     {
-        private class DbModel : DbItem
-        {
-            public int ID { get; set; }
+        private class DbModel : DbItem<DbModel, int>
+        {            
             public string Key { get; set; }
             public int Value { get; set; }
             public bool Active { get; set; }
         }
 
-        private SqlServerQueryProvider<DbModel> provider => new SqlServerQueryProvider<DbModel>(() => null);
-
-        private static readonly string ID = $"[{nameof(DbModel.ID)}]";
+        private SqlServerQueryProvider<DbModel, int> provider => new SqlServerQueryProvider<DbModel, int>(() => null);
+        
         private static readonly string KEY = $"[{nameof(DbModel.Key)}]";
         private static readonly string Value = $"[{nameof(DbModel.Value)}]";
         private static readonly string Active = $"[{nameof(DbModel.Active)}]";

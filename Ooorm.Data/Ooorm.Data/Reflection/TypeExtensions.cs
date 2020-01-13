@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Ooorm.Data.Reflection
 {
@@ -63,13 +62,6 @@ namespace Ooorm.Data.Reflection
 
         internal static IEnumerable<Property> GetDataProperties(this Type type)
             => type.GetProperties(PROPS)
-                    .Select(p => new Property(p));
-                    
-        /// <summary>
-        /// Creates a table for the specified type if it doesn't exist
-        /// </summary>
-        /// <param name="type">A CLR Type implementing IDbItem</param>
-        public static async Task CreateTableIn(this Type type, IDatabase db)
-            => await db.CreateTables(type);    
+                    .Select(p => new Property(p));  
     }
 }

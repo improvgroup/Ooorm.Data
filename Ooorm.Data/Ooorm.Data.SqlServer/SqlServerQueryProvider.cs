@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Ooorm.Data.QueryProviders;
 
 namespace Ooorm.Data.SqlServer
 {
@@ -26,7 +25,9 @@ EXEC('DROP DATABASE [{name}]');
 END;";
     }
 
-    internal class SqlServerQueryProvider<T> : SqlServerQueryProvider, IQueryProvider<T> where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+    internal class SqlServerQueryProvider<T, TId> : SqlServerQueryProvider, QueryProviders.IQueryProvider<T, TId> 
+        where T : DbItem<T, TId> 
+        where TId : struct, IEquatable<TId>
     {
         protected readonly IExtendableTypeResolver types;
 
@@ -34,15 +35,16 @@ END;";
 
         protected static readonly Column[] COLUMNS = typeof(T).GetColumns().ToArray();
         protected static readonly Column[] NON_ID_COLUMNS = typeof(T).GetColumns(exceptId: true).ToArray();
-        protected static readonly Column ID_COLUMN = COLUMNS.Single(c => c.Info.HasAttribute<IdAttribute>() || c.PropertyName == nameof(DbItem.ID));
+        protected static readonly Column ID_COLUMN = COLUMNS.Single(c => c.Info.HasAttribute<IdAttribute>() || c.PropertyName == nameof(DbItem<T,TId>.ID));
         protected static readonly string TABLE = typeof(T).HasAttribute<TableAttribute>() ? $"[{typeof(T).GetCustomAttribute<TableAttribute>().Value}]" : $"[{typeof(T).Name}]";
-        protected static readonly string WHERE_ID = $"WHERE [{nameof(DbItem.ID)}] = @Id;";
+        protected static readonly string WHERE_ID = $"WHERE [{nameof(DbItem<T, TId>.ID)}] = @Id;";
         protected static readonly string DELETE_PREFIX = $"DELETE FROM {TABLE} ";
         protected static readonly string DELETE_WHERE_ID = DELETE_PREFIX + WHERE_ID;
         protected static readonly string UPDATE_PREFIX = $"UPDATE {TABLE} SET ";
-        protected static readonly string READ_PREFIX = $"SELECT {string.Join(", ", COLUMNS.Select(c => $"[{c.ColumnName}]"))} FROM {TABLE} ";
+        protected static readonly string COLUMNS_LIST = string.Join(", ", COLUMNS.Select(c => $"[{c.ColumnName}]"));
+        protected static readonly string READ_PREFIX = $"SELECT {COLUMNS_LIST} FROM {TABLE} ";
         protected static readonly string READ_WHERE_ID = READ_PREFIX + WHERE_ID;
-        protected static readonly string WRITE_SQL = $"INSERT INTO {TABLE} ({string.Join(", ", NON_ID_COLUMNS.Select(c => $"[{c.ColumnName}]"))}) OUTPUT INSERTED.[{ID_COLUMN.ColumnName}] VALUES ({string.Join(", ", NON_ID_COLUMNS.Select(c => $"@{c.ColumnName}"))});";
+        protected static readonly string WRITE_SQL = $"INSERT INTO {TABLE} ({string.Join(", ", NON_ID_COLUMNS.Select(c => $"[{c.ColumnName}]"))}) OUTPUT INSERTED.* VALUES ({string.Join(", ", NON_ID_COLUMNS.Select(c => $"@{c.ColumnName}"))});";
 
         public string DeleteSqlById()
             => DELETE_WHERE_ID;

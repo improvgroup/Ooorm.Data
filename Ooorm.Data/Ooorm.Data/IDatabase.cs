@@ -9,8 +9,6 @@ namespace Ooorm.Data
     {
         Task<List<T>> Read<T, TId>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
-        Task<List<object>> Read(Type type);
-
         Task<T> Read<T, TId>(TId id) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
         Task<List<T>> Read<T, TId>(Expression<Func<T, bool>> predicate) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
@@ -53,17 +51,16 @@ namespace Ooorm.Data
         /// <param name="param"></param>
         /// <returns></returns>
         Task<int> Delete<T, TParam, TId>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
+    }    
+
+    public interface IDatabase : IReadable, IWritable, ISchema
+    {
+
     }
 
     public interface IDatabaseManagementSystem : IDatabase
     {
         Task DropDatabase(string name);
-        Task CreateDatabase(string name, params Type[] tables);
-    }
-
-
-    public interface IDatabase : IReadable, IWritable, ISchema
-    {
-
+        Task CreateDatabase(string name);
     }
 }

@@ -63,17 +63,14 @@ namespace Ooorm.Data.Sqlite
                     var result = (await dao.ReadAsync<T, TId>(c, queries.UpdateSql<T>(), value)).Single();
                     value.ID = result.ID;
                     results.Add(result.ID, result);
-                }
-                
+                }                
                 return results;
             });
 
-        public async Task<int> Delete(params T[] values)
-            => await DeleteById(values.Select(v => v.ID));
+        public Task<int> Delete(params T[] values) => DeleteById(values.Select(v => v.ID));
 
-
-        private async Task<int> DeleteById(IEnumerable<TId> ids)
-            => await ConnectionSource.FromConnectionAsync(async c => {
+        private Task<int> DeleteById(IEnumerable<TId> ids) =>
+            ConnectionSource.FromConnectionAsync(async c => {
                 var list = new List<Task<int>>();
                 foreach (var id in ids)
                     list.Add(dao.ExecuteAsync(c, queries.DeleteSqlById(), new { Id = id }));
@@ -84,15 +81,19 @@ namespace Ooorm.Data.Sqlite
             });
 
         public Task<int> Delete(Expression<Func<T, bool>> predicate) =>
-            ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate), null)));
+            ConnectionSource.FromConnectionAsync(c => 
+                dao.ExecuteAsync(c, queries.DeleteSql(predicate), null));
 
         public Task<int> Delete<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) =>
-            ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DeleteSql(predicate, param), param)));
+            ConnectionSource.FromConnectionAsync(c => 
+                dao.ExecuteAsync(c, queries.DeleteSql(predicate, param), param));
 
         public Task<int> CreateTable() =>
-            ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.CreateTableSql(), null)));
+            ConnectionSource.FromConnectionAsync(c => 
+                dao.ExecuteAsync(c, queries.CreateTableSql(), null));
 
         public Task<int> DropTable() =>
-            ConnectionSource.FromConnectionAsync(async c => (await dao.ExecuteAsync(c, queries.DropTableSql(), null)));
+            ConnectionSource.FromConnectionAsync(c => 
+                dao.ExecuteAsync(c, queries.DropTableSql(), null));
     }
 }

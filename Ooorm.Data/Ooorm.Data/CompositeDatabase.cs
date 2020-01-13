@@ -32,15 +32,6 @@ namespace Ooorm.Data
                 await front.CreateTable<T, TId>();
         }
 
-        public async Task CreateTables(params Type[] tables)
-        {
-            foreach (var type in tables)
-                if (backTypes.Contains(type))
-                    await back.CreateTables(type);
-                else
-                    await front.CreateTables(type);
-        }
-
         public async Task<int> Delete<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
@@ -89,15 +80,6 @@ namespace Ooorm.Data
                 await front.DropTable<T, TId>();
         }
 
-        public async Task DropTables(params Type[] tables)
-        {
-            foreach (var type in tables)
-                if (backTypes.Contains(type))
-                    await back.DropTables(type);
-                else
-                    await front.DropTables(type);
-        }
-
         public async Task<List<T>> Read<T, TId>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
@@ -128,14 +110,6 @@ namespace Ooorm.Data
                 return await back.Read<T, TId>(id);
             else
                 return await front.Read<T, TId>(id);
-        }
-
-        public async Task<List<object>> Read(Type type)
-        {
-            if (backTypes.Contains(type))
-                return await back.Read(type);
-            else
-                return await front.Read(type);
         }
 
         public async Task<SortedList<TId, T>> Update<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>

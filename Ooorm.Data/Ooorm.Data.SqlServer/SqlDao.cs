@@ -16,9 +16,9 @@ namespace Ooorm.Data.SqlServer
         public override void AddKeyValuePair(SqlCommand command, string key, object value)
         {
             var paramValue = value;
-            if (value is IdConvertable<int> valId)
+            if (value is IdConvertable valId)
                 paramValue = valId.ToId();
-            else if (value is IdConvertable<int?> refId)
+            else if (value is IdConvertable refId)
                 paramValue = refId.ToId();
             command.Parameters.AddWithValue(key, value);
         }
@@ -43,29 +43,29 @@ namespace Ooorm.Data.SqlServer
             return (int)(await command.ExecuteScalarAsync());
         }
 
-        public async Task<List<T>> ReadAsync<T>(System.Data.SqlClient.SqlConnection connection, string sql, object parameter) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<List<T>> ReadAsync<T, TId>(System.Data.SqlClient.SqlConnection connection, string sql, object parameter) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             using var command = GetCommand(sql, connection);
-            CheckColumnCache<T>();
+            CheckColumnCache<T, TId>();
             AddParameters(command, sql, parameter);
-            return await ExecuteReaderAsync<T>(command);
+            return await ExecuteReaderAsync<T, TId>(command);
         }
 
-        public async Task<List<T>> ReadAsync<T>(System.Data.SqlClient.SqlConnection connection, string sql, (string name, object value) parameter) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+        public async Task<List<T>> ReadAsync<T, TId>(System.Data.SqlClient.SqlConnection connection, string sql, (string name, object value) parameter) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             using var command = GetCommand(sql, connection);
-            CheckColumnCache<T>();
+            CheckColumnCache<T, TId>();
             AddParameters(command, sql, parameter);
-            return await ExecuteReaderAsync<T>(command);
+            return await ExecuteReaderAsync<T, TId>(command);
         }
 
-        protected async Task<List<T>> ExecuteReaderAsync<T>(SqlCommand command) where T : DbItem<T, TId> where TId : struct, IEquatable<TId> =>
-            await Task.Run(() => ExecuteReader<T>(command));
+        protected Task<List<T>> ExecuteReaderAsync<T, TId>(SqlCommand command) where T : DbItem<T, TId> where TId : struct, IEquatable<TId> =>
+            Task.Run(() => ExecuteReader<T, TId>(command));
 
-        protected override IEnumerable<T> ExecuteReader<T>(SqlCommand command)
+        protected override List<T> ExecuteReader<T, TId>(SqlCommand command)
         {
             using var reader = command.ExecuteReader(CommandBehavior.SequentialAccess);
-            return ParseReader<T>(reader);
+            return ParseReader<T, TId>(reader);
         }
     }
 }

@@ -24,15 +24,15 @@ namespace Ooorm.Data
         /// Deletes all records from the db that match each non-default field in item
         /// </summary>
         /// <returns>Number of deleted records</returns>
-        public async Task<int> DeleteMatchingFrom(IDatabase db = null)
-            => this.IsNew ? await db.Delete<TSelf, TSelf, TId>(MatchingPredicate(), this) : await db.Delete<TSelf, TId>(this);
+        public Task<int> DeleteMatchingFrom(IDatabase db = null)
+            => this.IsNew ? db.Delete<TSelf, TSelf, TId>(MatchingPredicate(), this) : db.Delete<TSelf, TId>(this);
 
         /// <summary>
         /// Reads all records from the db that match each non-default field in item
         /// </summary>
         /// <returns>Matching records</returns>
-        public async Task<List<TSelf>> ReadMatchingFrom(IDatabase db = null)
-            => await db.Read<TSelf, TSelf, TId>(MatchingPredicate(), this);
+        public Task<List<TSelf>> ReadMatchingFrom(IDatabase db = null)
+            => db.Read<TSelf, TSelf, TId>(MatchingPredicate(), this);
 
         /// <summary>
         /// Creates a query compatable predicate expression that matches all non-default fields of item
@@ -52,7 +52,7 @@ namespace Ooorm.Data
 
         private IEnumerable<BinaryExpression> MatchExpressions(ParameterExpression row, ParameterExpression p)
         {
-            foreach (var column in ((TSelf)this).GetColumns<TSelf, TId>().Where(c => !c.IsDefaultOn(this)))
+            foreach (var column in ((TSelf)this).GetColumns<TSelf, TId>(exceptId: true).Where(c => !c.IsDefaultOn(this)))
                 yield return Expression.Equal(Expression.MakeMemberAccess(row, column.Info), Expression.MakeMemberAccess(p, column.Info));
         }
 

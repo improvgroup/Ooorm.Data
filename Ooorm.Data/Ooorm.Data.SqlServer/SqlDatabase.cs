@@ -13,92 +13,57 @@ namespace Ooorm.Data.SqlServer
 
         private readonly Dictionary<Type, object> repositories = new Dictionary<Type, object>();
 
-        private ICrudRepository<T> Repos<T>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => (ICrudRepository<T>)(repositories.ContainsKey(typeof(T)) ? repositories[typeof(T)] : (repositories[typeof(T)] = new SqlRepository<T>(source, () => this)));
-
-        private ICrudRepository Repos(Type type)
-            => (ICrudRepository)(repositories.ContainsKey(type) ? repositories[type] : (repositories[type] = Activator.CreateInstance(typeof(SqlRepository<>).MakeGenericType(type), source, (Func<IDatabase>)(() => this))));
+        private ICrudRepository<T, TId> Repos<T, TId>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => (ICrudRepository<T, TId>)(repositories.ContainsKey(typeof(T)) ? repositories[typeof(T)] : (repositories[typeof(T)] = new SqlRepository<T, TId>(source, () => this)));       
 
         private readonly SqlConnection source;
 
         public SqlDatabase(SqlConnection source) => (this.source, dao) = (source, new SqlDao(() => this));
 
-        public async Task<int> Write<T>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().Write(values);
+        public Task<SortedList<TId, T>> Write<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Write(values);
 
-        public async Task<int> Delete<T>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().Delete(values);
+        public Task<int> Delete<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Delete(values);
 
-        public async Task<int> Delete<T>(Expression<Func<T, bool>> predicate) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().Delete(predicate);
+        public Task<int> Delete<T, TId>(Expression<Func<T, bool>> predicate) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Delete(predicate);
 
-        public async Task<int> Delete<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().Delete(predicate, param);
+        public Task<int> Delete<T, TParam, TId>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Delete(predicate, param);
 
-        public async Task<List<T>> Read<T>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().Read();
+        public Task<List<T>> Read<T, TId>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Read();
 
-        public async Task<T> Read<T>(int id) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().Read(id);
+        public Task<T> Read<T, TId>(TId id) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Read(id);
 
-        public async Task<List<T>> Read<T>(Expression<Func<T, bool>> predicate) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().Read(predicate);
+        public Task<List<T>> Read<T, TId>(Expression<Func<T, bool>> predicate) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Read(predicate);
 
-        public async Task<List<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().Read(predicate, param);
+        public Task<List<T>> Read<T, TParam, TId>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Read(predicate, param);       
 
-        public async Task<List<object>> Read(Type type)
-            => await Repos(type).ReadUntyped();
+        public Task<SortedList<TId, T>> Update<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Update(values);
 
-        public async Task<int> Update<T>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().Update(values);
+        public Task<T> Dereference<T, TId>(DbVal<T, TId> value) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Read(value);
 
-        public async Task<T> Dereference<T>(DbVal<T> value) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().Read(value);
+        public async Task<(bool exists, T value)> Dereference<T, TId>(DbRef<T, TId> value) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => value.IsNull ? (false, default) : (true, await Repos<T, TId>().Read(((TId?)value).Value));
 
-        public async Task<(bool exists, T value)> Dereference<T>(DbRef<T> value) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => value.IsNull ? (false, default) : (true, await Repos<T>().Read(((int?)value).Value));
+        public Task CreateTable<T, TId>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().CreateTable();
 
-        public async Task CreateTable<T>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().CreateTable();
-
-        public async Task DropTable<T>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
-            => await Repos<T>().DropTable();
-
-        public async Task CreateTables(params Type[] tables)
-        {
-            foreach (var type in tables)
-                await Repos(type).CreateTable();
-        }
-
-        public async Task DropTables(params Type[] tables)
-        {
-            foreach (var type in tables)
-                await Repos(type).DropTable();
-        }
+        public Task DropTable<T, TId>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().DropTable();
 
         /// <summary>
         /// Drops a database if it exists
         /// </summary>
-        public async Task DropDatabase(string name)
-            => await source.WithConnectionAsync(async c
-                => await dao.ExecuteAsync(c, queries.DropDatabaseSql(name), null));
+        public Task DropDatabase(string name) => source.WithConnectionAsync(c => dao.ExecuteAsync(c, queries.DropDatabaseSql(name), null));
 
-        /// <summary>
-        /// Creates a database if it doesn't exist
-        /// </summary>
-        public async Task CreateDatabase(string name, params Type[] tables)
-        {
-            await source.WithConnectionAsync(async c => await dao.ExecuteAsync(c, queries.DatabaseSql(name), null));
-            if (tables.Length > 0)
-                await source.WithConnectionAsync(async c =>
-                {
-                    c.ChangeDatabase(name);
-                    foreach (var type in tables)
-                        await Repos(type).CreateTable();
-                });
-        }
-
-
+        public Task CreateDatabase(string name) => source.WithConnectionAsync(c => dao.ExecuteAsync(c, queries.DatabaseSql(name), null));
     }
 }

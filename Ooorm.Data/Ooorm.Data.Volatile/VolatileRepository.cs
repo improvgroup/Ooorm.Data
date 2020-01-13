@@ -7,15 +7,17 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data.Volatile
 {
-    public class VolatileRepository<T> : ICrudRepository<T> where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
+    public class VolatileRepository<T, TId> : ICrudRepository<T, TId> 
+        where T : DbItem<T, TId> 
+        where TId : struct, IEquatable<TId>, IComparable<TId>
     {
         protected class Bucket
         {
-            public readonly int IdRangeStart;
-            public readonly int IdRangeEnd;
-            public readonly Actor<SortedList<int, T>> Data = new Actor<SortedList<int, T>>(new SortedList<int, T>());
+            public readonly TId IdRangeStart;
+            public readonly TId IdRangeEnd;
+            public readonly Actor<SortedList<TId, T>> Data = new Actor<SortedList<TId, T>>(new SortedList<TId, T>());
 
-            public Bucket(int start, int end) => (IdRangeStart, IdRangeEnd) = (start, end);
+            public Bucket(TId start, TId end) => (IdRangeStart, IdRangeEnd) = (start, end);
         }
 
         protected volatile int currentId = 1;
@@ -27,10 +29,10 @@ namespace Ooorm.Data.Volatile
         protected readonly object bucketMutationLock = new object();
         protected readonly Dictionary<int, Bucket> Buckets = new Dictionary<int, Bucket>();
 
-        protected Bucket GetBucket(int id)
+        protected Bucket GetBucket(TId id)
             => Buckets.ContainsKey(id / BUCKET_SIZE) ? Buckets[id / BUCKET_SIZE] : null;
 
-        protected bool TryGetBucket(int id, out Bucket bucket)
+        protected bool TryGetBucket(TId id, out Bucket bucket)
             => (bucket = GetBucket(id)) != null;
 
         protected Bucket GetOrAddBucket(int id)
@@ -67,7 +69,7 @@ namespace Ooorm.Data.Volatile
         {
             var buckets = new Dictionary<Bucket, List<T>>();
             foreach (var item in items)
-                if (item.ID != default && TryGetBucket(item.ID, out Bucket bucket))
+                if (!item.ID.Equals(default) && TryGetBucket(item.ID, out Bucket bucket))
                     if (buckets.ContainsKey(bucket))
                         buckets[bucket].Add(item);
                     else

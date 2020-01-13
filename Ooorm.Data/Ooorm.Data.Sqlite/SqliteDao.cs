@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
@@ -18,9 +17,9 @@ namespace Ooorm.Data.Sqlite
         public override void AddKeyValuePair(SQLiteCommand command, string key, object value)
         {
             var paramValue = value;
-            if (value is IdConvertable<int> valId)
+            if (value is IdConvertable valId)
                 paramValue = valId.ToId();
-            else if (value is IdConvertable<int?> refId)
+            else if (value is IdConvertable refId)
                 paramValue = refId.ToId();
             command.Parameters.AddWithValue(key, value);
         }
