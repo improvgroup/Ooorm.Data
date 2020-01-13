@@ -2,7 +2,7 @@
 
 Work in progress relation DB access library for C#.
 
-##Goals: (listed aproximately in order of achievement level)
+## Goals: (listed aproximately in order of achievement level)
  * "Thin" abstraction layer, maintain the same relation representation of your data in your database and your entity classes, rather than implementing a document database on top of a relational one
  * Fluent api design to make reading db access code easier 
  * Strongly typed code-first query and schema generation, so that you can confidently use IDE refactoring tools
