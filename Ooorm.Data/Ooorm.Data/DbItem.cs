@@ -34,6 +34,8 @@ namespace Ooorm.Data
         public Task<List<TSelf>> ReadMatchingFrom(IDatabase db = null)
             => db.Read<TSelf, TSelf, TId>(MatchingPredicate(), this);
 
+        public Task<List<TSelf>> ReadMatching(Expression<Func<TSelf>> conditions) => throw new NotImplementedException();
+
         /// <summary>
         /// Creates a query compatable predicate expression that matches all non-default fields of item
         /// </summary>
