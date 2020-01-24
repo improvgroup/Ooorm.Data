@@ -88,9 +88,16 @@ namespace Ooorm.Data.SqlServer
         public Task<int> CreateTable() => 
             ConnectionSource.FromConnectionAsync(c => 
                 dao.ExecuteAsync(c, queries.CreateTableSql(), null));
-
+         
         public Task<int> DropTable() => 
             ConnectionSource.FromConnectionAsync(c => 
                 dao.ExecuteAsync(c, queries.DropTableSql(), null));
+
+        public Task<List<T>> Read(Expression<Func<T>> constructor) =>
+            ConnectionSource.FromConnectionAsync(async c => (await dao.ReadAsync<T, TId>(c, queries.ReadSql(constructor), null)).ToList());
+
+        public Task<int> Delete(Expression<Func<T>> constructor) =>
+            ConnectionSource.FromConnectionAsync(c => dao.ExecuteAsync(c, queries.DeleteSql(constructor), null));
+
     }
 }

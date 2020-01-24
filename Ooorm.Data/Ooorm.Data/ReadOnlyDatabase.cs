@@ -40,6 +40,11 @@ namespace Ooorm.Data
         public Task<List<T>> Read<T, TParam, TId>(Expression<Func<T, TParam, bool>> predicate, TParam param) 
             where T : DbItem<T, TId> 
             where TId : struct, IEquatable<TId>
-            => source.Read<T, TParam, TId>(predicate, param);        
+            => source.Read<T, TParam, TId>(predicate, param);
+
+        public Task<List<T>> Read<T, TId>(Expression<Func<T>> constructor)
+            where T : DbItem<T, TId>
+            where TId : struct, IEquatable<TId>
+            => source.Read<T, TId>(constructor);
     }
 }

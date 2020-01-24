@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Ooorm.Data.Sqlite
 {
     public class SqliteDatabase : IDatabase
-    {        
+    {
         private readonly SqliteDao dao;
 
         private readonly Dictionary<Type, object> repositories = new Dictionary<Type, object>();
@@ -16,11 +16,11 @@ namespace Ooorm.Data.Sqlite
 
         private ICrudRepository Repos(Type type)
         {
-            var id_type = type.GetProperty(nameof(Param<int,int>.ID)).GetType();
+            var id_type = type.GetProperty(nameof(Param<int, int>.ID)).GetType();
             var repo_type = typeof(SqliteRepository<,>).MakeGenericType(type, id_type);
             Console.WriteLine(id_type);
-            return (ICrudRepository)(repositories.ContainsKey(type) 
-                    ? repositories[type] 
+            return (ICrudRepository)(repositories.ContainsKey(type)
+                    ? repositories[type]
                     : (repositories[type] = Activator.CreateInstance(repo_type, source, (Func<IDatabase>)(() => this))));
         }
 
@@ -81,5 +81,16 @@ namespace Ooorm.Data.Sqlite
             foreach (var type in tables)
                 await Repos(type).DropTable();
         }
+
+        public Task<List<T>> Read<T, TId>(Expression<Func<T>> constructor)
+            where T : DbItem<T, TId>
+            where TId : struct, IEquatable<TId> =>
+            Repos<T, TId>().Read(constructor);
+
+
+        public Task<int> Delete<T, TId>(Expression<Func<T>> constructor)
+            where T : DbItem<T, TId>
+            where TId : struct, IEquatable<TId> =>
+            Repos<T, TId>().Delete(constructor);
     }
 }

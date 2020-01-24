@@ -56,6 +56,16 @@ namespace Ooorm.Data
                 return await front.Delete<T, TParam, TId>(predicate, param);
         }
 
+        public Task<int> Delete<T, TId>(Expression<Func<T>> constructor)
+            where T : DbItem<T, TId>
+            where TId : struct, IEquatable<TId>
+        {
+            if (backTypes.Contains(typeof(T)))
+                return back.Delete<T, TId>(constructor);
+            else
+                return front.Delete<T, TId>(constructor);
+        }
+
         public async Task<T> Dereference<T, TId>(DbVal<T, TId> value) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             if (backTypes.Contains(typeof(T)))
@@ -111,6 +121,16 @@ namespace Ooorm.Data
             else
                 return await front.Read<T, TId>(id);
         }
+
+        public Task<List<T>> Read<T, TId>(Expression<Func<T>> constructor)
+            where T : DbItem<T, TId>
+            where TId : struct, IEquatable<TId>        
+        {
+            if (backTypes.Contains(typeof(T)))
+                return back.Read<T, TId>(constructor);
+            else
+                return front.Read<T, TId>(constructor);
+        }       
 
         public async Task<SortedList<TId, T>> Update<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {

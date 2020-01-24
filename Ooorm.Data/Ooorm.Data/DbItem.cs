@@ -7,31 +7,32 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data
 {
-    public abstract class DbItem<TSelf, TId> where TId : struct, IEquatable<TId> where TSelf : DbItem<TSelf, TId>
+    public abstract class DbItem<TSelf, TId> : IdConvertable where TId : struct, IEquatable<TId> where TSelf : DbItem<TSelf, TId>
     {
         internal bool IsNew { get; set; } = true;
         public TId ID { get; internal set; }
-    
+        public object ToId() => ID;
+
         public static implicit operator TSelf(DbItem<TSelf, TId> a) => (TSelf)a;
 
         /// <summary>
         /// Writes a db item to the specified database and returns the result
         /// </summary>
         public async Task<TSelf> WriteTo(IDatabase db) =>
-            (this.IsNew ? (await db.Write<TSelf, TId>(this)) : (await db.Update<TSelf, TId>(this))).Single().Value;               
+            (this.IsNew ? (await db.Write<TSelf, TId>(this)) : (await db.Update<TSelf, TId>(this))).Single().Value;
 
         /// <summary>
         /// Reads all records from the db that match each non-default field in item
         /// </summary>
         /// <returns>Matching records</returns>
-        public static FromOp<List<TSelf>> ReadMatching(Expression<Func<TSelf>> conditions) => throw new NotImplementedException();
+        public static FromOp<List<TSelf>> ReadMatching(Expression<Func<TSelf>> conditions) => new FromOp<List<TSelf>>(db => db.Read<TSelf, TId>(conditions));
 
 
         /// <summary>
         /// Deletes all records from the db that match each non-default field in item
         /// </summary>
         /// <returns>List of deleted records</returns>
-        public static FromOp<List<TSelf>> DeleteMatching(Expression<Func<TSelf>> conditions) => throw new NotImplementedException();
+        public static FromOp<int> DeleteMatching(Expression<Func<TSelf>> conditions) => new FromOp<int>(db => db.Delete<TSelf, TId>(conditions));
 
         public DbRef<TSelf, TId> In(IDatabase database) =>        
             !IsNew ? new DbRef<TSelf, TId>(ID, () => database) : throw new KeyNotFoundException("Cannot reference an entity that has not been persisted");

@@ -49,6 +49,9 @@ END;";
         public string DeleteSqlById()
             => DELETE_WHERE_ID;
 
+        public string DeleteSql(Expression<Func<T>> constructor)
+            => DELETE_PREFIX.Append(constructor.ToSql()).Append(";").ToString();
+
         public string DeleteSql(Expression<Func<T, bool>> predicate)
             => DELETE_PREFIX.Append(WhereClause(predicate)).Append(";").ToString();
 
@@ -63,6 +66,9 @@ END;";
 
         public string ReadById()
             => READ_PREFIX.Append(WHERE_ID).ToString();
+
+        public string ReadSql(Expression<Func<T>> constructor) =>
+            READ_PREFIX.Append(constructor.ToSql()).Append(";").ToString();
 
         public string ReadSql(Expression<Func<T, bool>> predicate)
             => READ_PREFIX.Append(WhereClause(predicate)).Append(";").ToString();

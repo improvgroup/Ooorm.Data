@@ -65,5 +65,15 @@ namespace Ooorm.Data.SqlServer
         public Task DropDatabase(string name) => source.WithConnectionAsync(c => dao.ExecuteAsync(c, queries.DropDatabaseSql(name), null));
 
         public Task CreateDatabase(string name) => source.WithConnectionAsync(c => dao.ExecuteAsync(c, queries.DatabaseSql(name), null));
+
+        public Task<List<T>> Read<T, TId>(Expression<Func<T>> constructor)
+            where T : DbItem<T, TId>
+            where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Read(constructor);
+
+        public Task<int> Delete<T, TId>(Expression<Func<T>> constructor)
+            where T : DbItem<T, TId>
+            where TId : struct, IEquatable<TId>
+            => Repos<T, TId>().Delete(constructor);
     }
 }
