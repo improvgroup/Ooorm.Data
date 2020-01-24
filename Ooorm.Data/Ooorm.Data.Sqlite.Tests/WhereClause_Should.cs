@@ -1,7 +1,7 @@
 using Xunit;
 using FluentAssertions;
 
-namespace Ooorm.Data.SqlServer.Tests
+namespace Ooorm.Data.Sqlite.Tests
 {
     public class WhereClause_Should
     {
@@ -12,8 +12,9 @@ namespace Ooorm.Data.SqlServer.Tests
             public bool Active { get; set; }
         }
 
-        private SqlServerQueryProvider<DbModel, int> provider => new SqlServerQueryProvider<DbModel, int>(() => null);
-        
+        private SqliteQueryProvider<DbModel, int> provider => new SqliteQueryProvider<DbModel, int>(() => null);
+
+        private static readonly string ID = $"[{nameof(DbModel.ID)}]";
         private static readonly string KEY = $"[{nameof(DbModel.Key)}]";
         private static readonly string Value = $"[{nameof(DbModel.Value)}]";
         private static readonly string Active = $"[{nameof(DbModel.Active)}]";

@@ -21,17 +21,15 @@ namespace Ooorm.Data.SqlServer
         {
             get
             {
-                using (var connection = new System.Data.SqlClient.SqlConnection(connectionString))
+                using var connection = new System.Data.SqlClient.SqlConnection(connectionString);
+                try
                 {
-                    try
-                    {
-                        connection.Open();
-                        return true;
-                    }
-                    catch (SqlException)
-                    {
-                        return false;
-                    }
+                    connection.Open();
+                    return true;
+                }
+                catch (SqlException)
+                {
+                    return false;
                 }
             }
         }
@@ -42,11 +40,6 @@ namespace Ooorm.Data.SqlServer
 
         public abstract T FromConnection<T>(Func<System.Data.SqlClient.SqlConnection, T> action);
         public abstract Task<T> FromConnectionAsync<T>(Func<System.Data.SqlClient.SqlConnection, Task<T>> action);
-
-        internal Task<Task<IEnumerable<IDbItem>>> FromConnectionAsync(Func<System.Data.SqlClient.SqlConnection, Task<object>> p)
-        {
-            throw new NotImplementedException();
-        }
 
         public abstract void Dispose();
 

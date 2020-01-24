@@ -7,63 +7,64 @@ namespace Ooorm.Data
 {
     public interface IReadable
     {
-        Task<IEnumerable<T>> Read<T>() where T : IDbItem;
+        Task<List<T>> Read<T, TId>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
-        Task<IEnumerable<object>> Read(Type type);
+        Task<T> Read<T, TId>(TId id) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
-        Task<T> Read<T>(int id) where T : IDbItem;
+        Task<List<T>> Read<T, TId>(Expression<Func<T>> constructor) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
-        Task<IEnumerable<T>> Read<T>(Expression<Func<T, bool>> predicate) where T : IDbItem;
+        Task<List<T>> Read<T, TId>(Expression<Func<T, bool>> predicate) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
-        Task<IEnumerable<T>> Read<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem;
+        Task<List<T>> Read<T, TParam, TId>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
-        Task<T> Dereference<T>(DbVal<T> value) where T : IDbItem;
+        Task<T> Dereference<T, TId>(DbVal<T, TId> value) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
-        Task<(bool exists, T value)> Dereference<T>(DbRef<T> value) where T : IDbItem;
+        Task<(bool exists, T value)> Dereference<T, TId>(DbRef<T, TId> value) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
     }
 
     public interface IWritable
     {
         /// <summary>
-        /// Write values to the database
+        /// Write values to the database and return the set of new IDs
         /// </summary>
-        Task<int> Write<T>(params T[] values) where T : IDbItem;
+        Task<SortedList<TId, T>> Write<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
         /// <summary>
-        /// Update the values of existing items
+        /// Update the values of existing items and return the new values
         /// </summary>
-        Task<int> Update<T>(params T[] values) where T : IDbItem;
+        Task<SortedList<TId, T>> Update<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
         /// <summary>
-        /// Delete the items with the specified IDs
+        /// Delete the items with the specified IDs and return the number of rows effected
         /// </summary>
-        Task<int> Delete<T>(params T[] values) where T : IDbItem;
+        Task<int> Delete<T, TId>(params T[] values) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
         /// <summary>
-        /// Delete the items that match the parameterless predicate
+        /// Delete the items that match the parameterless predicate and return the number of rows effected
         /// </summary>
-        Task<int> Delete<T>(Expression<Func<T, bool>> predicate) where T : IDbItem;
+        Task<int> Delete<T, TId>(Expression<Func<T, bool>> predicate) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
 
         /// <summary>
-        /// Delete the items that
+        /// Delete the items that match the condition and return the number of rows effected
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="TParam"></typeparam>
         /// <param name="predicate"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        Task<int> Delete<T, TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : IDbItem;
+        Task<int> Delete<T, TParam, TId>(Expression<Func<T, TParam, bool>> predicate, TParam param) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
+
+        Task<int> Delete<T, TId>(Expression<Func<T>> constructor) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>;
+    }
+
+    public interface IDatabase : IReadable, IWritable, ISchema
+    {
+
     }
 
     public interface IDatabaseManagementSystem : IDatabase
     {
         Task DropDatabase(string name);
-        Task CreateDatabase(string name, params Type[] tables);
-    }
-
-
-    public interface IDatabase : IReadable, IWritable, ISchema
-    {
-
+        Task CreateDatabase(string name);
     }
 }

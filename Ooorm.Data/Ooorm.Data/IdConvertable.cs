@@ -2,6 +2,11 @@
 
 namespace Ooorm.Data
 {
+    public interface IdConvertable
+    {
+        object ToId();
+    }
+
     public interface IdConvertable<TId>
     {
         bool HasValue { get; }

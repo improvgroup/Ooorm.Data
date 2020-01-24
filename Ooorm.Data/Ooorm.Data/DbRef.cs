@@ -4,45 +4,43 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data
 {
-    public struct DbRef<T> : IdConvertable<int?> where T : IDbItem
+    public struct DbRef<T, TId> : IdConvertable<TId?> where TId : struct, IEquatable<TId> where T : DbItem<T, TId>
     {
         internal readonly Func<IDatabase> getDb;
 
-        internal readonly int? value;
+        internal readonly TId? value;
 
         public bool IsNull => !value.HasValue;
 
         public bool HasValue => value.HasValue;
 
-        public DbRef(int? v, Func<IDatabase> db) => (value, getDb) = (v, db);
+        public DbRef(TId? v, Func<IDatabase> db) => (value, getDb) = (v, db);
 
-        public static implicit operator int? (DbRef<T> v) => v.value;
+        public static implicit operator TId? (DbRef<T, TId> v) => v.value;
 
-        public static implicit operator DbRef<T> (DbVal<T> v) => new DbRef<T>(v.value, v.getDb);
+        public static implicit operator DbRef<T, TId> (DbVal<T, TId> v) => new DbRef<T, TId>(v.value, v.getDb);
 
-        public int? ToId() => value;
+        public TId? ToId() => value;
 
-        public async Task<T> Get() => value.HasValue ? await getDb()?.Read<T>(value.Value) : default;
+        public async Task<T> Get() => value.HasValue ? await getDb()?.Read<T, TId>(value.Value) : default;
 
         public async Task<object> GetObject() => await Get();
 
-        public static bool operator ==(DbRef<T> a, DbRef<T> b) => a.value == b.value;
-        public static bool operator !=(DbRef<T> a, DbRef<T> b) => a.value != b.value;
-        public static bool operator ==(DbRef<T> a, DbVal<T> b) => a.value == b.value;
-        public static bool operator !=(DbRef<T> a, DbVal<T> b) => a.value != b.value;
+        public static bool operator ==(DbRef<T, TId> a, DbRef<T, TId> b) => a.HasValue && b.HasValue && a.value.Equals(b.value);
+        public static bool operator !=(DbRef<T, TId> a, DbRef<T, TId> b) => !a.HasValue || !b.HasValue || !a.value.Equals(b.value);
+        public static bool operator ==(DbRef<T, TId> a, DbVal<T, TId> b) => a.HasValue && a.value.Equals(b.value);
+        public static bool operator !=(DbRef<T, TId> a, DbVal<T, TId> b) => !a.HasValue || !a.value.Equals(b.value);
 
         public override bool Equals(object obj)
         {
-            if (obj is DbRef<T> r)
+            if (obj is DbRef<T, TId> r)
                 return this == r;
-            else if (obj is DbVal<T> v)
+            else if (obj is DbVal<T, TId> v)
                 return this == v;
             else
                 return base.Equals(obj);
         }
 
-        public override int GetHashCode() => -1584136870 + EqualityComparer<int?>.Default.GetHashCode(value);
-
-
+        public override int GetHashCode() => -1584136870 + EqualityComparer<TId?>.Default.GetHashCode(value);
     }
 }

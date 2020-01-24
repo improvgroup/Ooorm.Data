@@ -1,13 +1,17 @@
-﻿using Ooorm.Data.Reflection;
+﻿using Ooorm.Data.Matching;
+using Ooorm.Data.Reflection;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace Ooorm.Data
 {
     public static class ExpressionExtensions
     {
+        internal static string ToSql<T>(this Expression<Func<T>> constructor) => Matcher(constructor);
+
         /// <summary>
         /// Default implementation of a predicate to sql transpiler
         /// </summary>
@@ -64,10 +68,8 @@ namespace Ooorm.Data
             {
                 if (constant.Value is int intvalue)
                     builder.Append($"{intvalue}");
-                else if (constant.Value is IdConvertable<int> dbval)
-                    builder.Append($"{dbval.ToId()}");
-                else if (constant.Value is IdConvertable<int?> dbref && dbref.ToId().HasValue)
-                    builder.Append($"{dbref.ToId()}");
+                else if (constant.Value is IdConvertable dbval)
+                    builder.Append($"{dbval.ToId()}");                
                 else if (constant.Value is string text)
                     builder.Append($"'{text}'");
                 else if (constant.Value is bool boolvalue)
@@ -160,6 +162,123 @@ namespace Ooorm.Data
             {
                 builder.Append($"@{parameter.Name}");
             }
+        }
+
+        internal static string Matcher<T>(Expression<Func<T>> foo)
+        {
+            StringBuilder builder = new StringBuilder("WHERE ");            
+
+            void parseConstant(ConstantExpression constant)
+            {
+                if (constant.Value is int intvalue)
+                    builder.Append($"{intvalue}");
+                else if (constant.Value is long longvalue)
+                    builder.Append($"{longvalue}");
+                else if (constant.Value is IdConvertable dbval)
+                    builder.Append($"{dbval.ToId()}");                
+                else if (constant.Value is string text)
+                    builder.Append($"'{text}'");
+                else if (constant.Value is bool boolvalue)
+                {
+                    if (boolvalue)
+                        builder.Append("1");
+                    else
+                        builder.Append("0");
+                }
+                else
+                    throw new Exception($"Constants of type {constant.Value.GetType()} are not supported - use parameterization");
+            }
+
+            void parseConvert(UnaryExpression unary)
+            {
+                if (unary.NodeType == ExpressionType.Convert && (unary.Method?.ToString().Contains("Explicit") ?? false))
+                {
+                    if (unary.Type.Name == typeof(ExpressionDecorator<,>).Name)
+                    {
+                        var operandProperty = unary.Type.GenericTypeArguments[0].GetProperty(nameof(LessThan<int>.Operand), BindingFlags.Static | BindingFlags.Public);
+                        var operand = (string)operandProperty.GetValue(null, new object[0]);
+                        builder.Append(" ").Append(operand).Append(" ");
+                    }
+                }
+                if (unary.Operand is UnaryExpression inner)
+                    parseConvert(inner);
+                else if (unary.Operand is ConstantExpression constant)
+                    parseConstant(constant);
+            }
+
+            void parse(Expression expression)
+            {
+                if (expression is MemberInitExpression assign)
+                {        
+                    if (assign.Bindings.Count == 0)
+                    {
+                        builder.Append("1 = 1");
+                        return;
+                    }
+
+                    bool list = false;
+                    foreach (var binding in assign.Bindings)
+                    {
+                        if (binding is MemberAssignment assignment)
+                        {
+                            if (list)
+                                builder.Append(" AND ");
+                            builder.Append($"{assignment.Member.Name}");
+                            if (assignment.Expression is ConstantExpression constant)
+                            {
+                                builder.Append(" = ");
+                                parseConstant(constant);
+                            }
+                            else if (assignment.Expression is UnaryExpression unary)
+                                parseConvert(unary);
+                            else if (assignment.Expression is MethodCallExpression call && call.Method.Name == "In"/*nameof(DbItem<,>.In)*/)
+                            {
+                                builder.Append(" = ");
+                                if (call.Object is MemberExpression member)
+                                {
+                                    var value = GetMemberExpressionValue(member);
+                                    var id = Expression.Constant(((IdConvertable)value).ToId());
+                                    parseConstant(id);
+                                }
+                            }
+                            else if (assignment.Expression is MemberExpression member)
+                            {
+                                builder.Append(" = ");
+                                parseConstant(Expression.Constant(GetMemberExpressionValue(member)));
+                            }
+                            list = true;
+                        }
+                    }
+                }
+            }
+
+            parse(foo.Body);
+            
+            return builder.ToString();
+        }
+
+        public static object GetMemberExpressionValue(MemberExpression member)
+        {
+            if (member.Expression is ConstantExpression leaf)
+            {
+                var item = leaf.Value;
+                var entity = item.GetType();
+                if (entity.GetProperty(member.Member.Name) is PropertyInfo property)
+                    return property.GetValue(item);
+                else
+                    return entity.GetField(member.Member.Name).GetValue(item);
+            }
+            else if (member.Expression is MemberExpression next)
+            {
+                var item = GetMemberExpressionValue(next);
+                var entity = item.GetType();
+                if (entity.GetProperty(member.Member.Name) is PropertyInfo property)
+                    return property.GetValue(item);
+                else
+                    return entity.GetField(member.Member.Name).GetValue(item);
+            }
+            else
+                throw new NotImplementedException();            
         }
     }
 }

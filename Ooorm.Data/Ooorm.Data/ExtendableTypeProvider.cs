@@ -26,6 +26,7 @@ namespace Ooorm.Data
         private readonly Dictionary<Type, TypeHandler> _providedHandlers = new Dictionary<Type, TypeHandler>();
 
         private void RegisterBaseHandler<TClr, TDb>(TypeHandler<TClr, TDb> handler) => _baseHandlers[typeof(TClr)] = handler;
+        
 
         protected void RegisterHandler<TClr, TDb>(TypeHandler<TClr, TDb> handler) => _providedHandlers[typeof(TClr)] = handler;
 
@@ -35,7 +36,7 @@ namespace Ooorm.Data
         public ExtendableTypeProvider(Func<IDatabase> db)
         {
             this.database = db;
-            RegisterBaseHandler(new BooleanHandler());            
+            RegisterBaseHandler(new BooleanHandler());   
             RegisterBaseHandler(new Int8Handler());
             RegisterBaseHandler(new UInt8Handler());
             RegisterBaseHandler(new Int16Handler());
@@ -62,10 +63,10 @@ namespace Ooorm.Data
                 return Enum.ToObject(type, value);
             if (IsDbVal(type))
                 return Activator.CreateInstance(
-                    typeof(DbVal<>).MakeGenericType(type.GenericTypeArguments), value, database);
+                    typeof(DbVal<,>).MakeGenericType(type.GenericTypeArguments), value, database);
             else if (IsDbRef(type))
                 return Activator.CreateInstance(
-                    typeof(DbRef<>).MakeGenericType(type.GenericTypeArguments), value, database);
+                    typeof(DbRef<,>).MakeGenericType(type.GenericTypeArguments), value, database);
             else if (IsNullable(type, out Type generic))
             {
                 try { return GetHandler(generic).DeserializeObject(value); }
@@ -113,16 +114,18 @@ namespace Ooorm.Data
             => (clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Nullable<>)) ? (generic = clrType.GenericTypeArguments.FirstOrDefault()) != null : (generic = null) != null;
 
         private bool IsDbVal(Type clrType)
-            => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(DbVal<>);
+            => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(DbVal<,>);
 
         private bool IsDbRef(Type clrType)
-            => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(DbRef<>);
+            => clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(DbRef<,>);
 
         public bool IsReference(Type clrType) => IsDbVal(clrType) || IsDbRef(clrType);
 
         public bool IsDbValueType(Type clrType)
-            => (clrType.IsGenericType && (clrType == typeof(DbRef<>).MakeGenericType(clrType.GenericTypeArguments) || clrType == typeof(DbVal<>).MakeGenericType(clrType.GenericTypeArguments)))
-                    || HasMapping(clrType);
+            => (clrType.IsGenericType 
+                && (clrType == typeof(DbRef<,>).MakeGenericType(clrType.GenericTypeArguments) 
+                || clrType == typeof(DbVal<,>).MakeGenericType(clrType.GenericTypeArguments)))
+            || HasMapping(clrType);
 
         private bool HasMapping(Type clrType)
             => _baseHandlers.ContainsKey(clrType) || _providedHandlers.ContainsKey(clrType);

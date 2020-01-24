@@ -1,8 +1,9 @@
-﻿namespace Ooorm.Data
+﻿using System;
+
+namespace Ooorm.Data
 {
-    public class Param<T> : IDbItem
+    public class Param<T, TId> : DbItem<Param<T, TId>, TId> where TId : struct, IEquatable<TId>
     {
-        public T Value { get; set; }
-        public int ID { get; set; }
+        public T Value { get; set; }        
     }
 }

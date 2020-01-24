@@ -7,15 +7,17 @@ using System.Threading.Tasks;
 
 namespace Ooorm.Data.Volatile
 {
-    public class VolatileRepository<T> : ICrudRepository<T> where T : IDbItem
+    public class VolatileRepository<T, TId> : ICrudRepository<T, TId> 
+        where T : DbItem<T, TId> 
+        where TId : struct, IEquatable<TId>, IComparable<TId>
     {
         protected class Bucket
         {
-            public readonly int IdRangeStart;
-            public readonly int IdRangeEnd;
-            public readonly Actor<SortedList<int, T>> Data = new Actor<SortedList<int, T>>(new SortedList<int, T>());
+            public readonly TId IdRangeStart;
+            public readonly TId IdRangeEnd;
+            public readonly Actor<SortedList<TId, T>> Data = new Actor<SortedList<TId, T>>(new SortedList<TId, T>());
 
-            public Bucket(int start, int end) => (IdRangeStart, IdRangeEnd) = (start, end);
+            public Bucket(TId start, TId end) => (IdRangeStart, IdRangeEnd) = (start, end);
         }
 
         protected volatile int currentId = 1;
@@ -27,15 +29,16 @@ namespace Ooorm.Data.Volatile
         protected readonly object bucketMutationLock = new object();
         protected readonly Dictionary<int, Bucket> Buckets = new Dictionary<int, Bucket>();
 
-        protected Bucket GetBucket(int id)
+        protected Bucket GetBucket(TId id)
             => Buckets.ContainsKey(id / BUCKET_SIZE) ? Buckets[id / BUCKET_SIZE] : null;
 
-        protected bool TryGetBucket(int id, out Bucket bucket)
+        protected bool TryGetBucket(TId id, out Bucket bucket)
             => (bucket = GetBucket(id)) != null;
 
         protected Bucket GetOrAddBucket(int id)
         {
-            if (TryGetBucket(id, out Bucket bucket));
+            if (TryGetBucket(id, out Bucket bucket))
+                return bucket;
             else
             {
                 int start = id / BUCKET_SIZE;
@@ -44,8 +47,8 @@ namespace Ooorm.Data.Volatile
                 {
                     Buckets[start] = bucket;
                 }
-            }
-            return bucket;
+                return bucket;
+            }            
         }
 
         protected Dictionary<Bucket, List<int>> GetBuckets(IEnumerable<int> ids)
@@ -66,7 +69,7 @@ namespace Ooorm.Data.Volatile
         {
             var buckets = new Dictionary<Bucket, List<T>>();
             foreach (var item in items)
-                if (item.ID != default && TryGetBucket(item.ID, out Bucket bucket))
+                if (!item.ID.Equals(default) && TryGetBucket(item.ID, out Bucket bucket))
                     if (buckets.ContainsKey(bucket))
                         buckets[bucket].Add(item);
                     else
@@ -80,13 +83,13 @@ namespace Ooorm.Data.Volatile
 
         public VolatileRepository(Func<IDatabase> db, bool manageIds = true) => (database, this.manageIds) = (db, manageIds);
 
-        public async Task<int> CreateTable() => Buckets.Count > 0 ? 0 : 1;
+        public Task<int> CreateTable() => Task.FromResult(Buckets.Count > 0 ? 0 : 1);
 
-        public async Task<int> DropTable()
+        public Task<int> DropTable()
         {
             int count = Buckets.Count > 0 ? 1 : 0;
             Buckets.Clear();
-            return count;
+            return Task.FromResult(count);
         }
 
         public async Task<int> Delete(params T[] values) => await Delete(values.Select(v => v.ID));
@@ -149,7 +152,7 @@ namespace Ooorm.Data.Volatile
             });
         }
 
-        public async Task<IEnumerable<T>> Read()
+        public async Task<List<T>> Read()
         {
             List<T> results = new List<T>();
             foreach (var bucket in Buckets.Values)
@@ -157,7 +160,7 @@ namespace Ooorm.Data.Volatile
             return results;
         }
 
-        public async Task<IEnumerable<object>> ReadUntyped() => (await Read()).Select(i => (object)i);
+        public async Task<List<object>> ReadUntyped() => (await Read()).Select(i => (object)i);
 
         public async Task<T> Read(int id)
         {
@@ -167,10 +170,10 @@ namespace Ooorm.Data.Volatile
             return result;
         }
 
-        public async Task<IEnumerable<T>> Read(Expression<Func<T, bool>> predicate)
+        public async Task<List<T>> Read(Expression<Func<T, bool>> predicate)
             => (await Read()).Where(predicate.Compile());
 
-        public async Task<IEnumerable<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
+        public async Task<List<T>> Read<TParam>(Expression<Func<T, TParam, bool>> predicate, TParam param)
         {
             var test = predicate.Compile();
             return (await Read()).Where(r => test(r, param));

@@ -5,43 +5,43 @@ namespace Ooorm.Data.Sqlite
 {
     public class SharedConnectionSource : SqliteConnection
     {
-        private readonly Task<System.Data.SQLite.SQLiteConnection> Connection;
+        private readonly Microsoft.Data.Sqlite.SqliteConnection Connection;
 
         public SharedConnectionSource(string connectionString) : base(connectionString)
         {
-            Connection = Task.Run(async () =>
-            {
-                var connection = new System.Data.SQLite.SQLiteConnection(connectionString);
-                await connection.OpenAsync();
-                OpenConnections = 1;
-                return connection;
-            });
+            var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
+            connection.Open();
+            OpenConnections = 1;
+            Connection = connection;
         }
 
         public override void Dispose()
         {
-            Connection.Result.Close();
+            Connection.Close();
             OpenConnections = 0;
         }
 
-        public override void WithConnection(Action<System.Data.SQLite.SQLiteConnection> action) =>
-            action(Connection.Result);
+        public override void WithConnection(Action<Microsoft.Data.Sqlite.SqliteConnection> action) =>
+            action(Connection);
 
 
-        public override async Task WithConnectionAsync(Action<System.Data.SQLite.SQLiteConnection> action) =>
-            action(await Connection);
+        public override Task WithConnectionAsync(Action<Microsoft.Data.Sqlite.SqliteConnection> action)
+        {
+            action(Connection);
+            return Task.CompletedTask;
+        }
 
 
-        public override async Task WithConnectionAsync(Func<System.Data.SQLite.SQLiteConnection, Task> action) =>
-            await action(await Connection);
+        public override Task WithConnectionAsync(Func<Microsoft.Data.Sqlite.SqliteConnection, Task> action) =>
+            action(Connection);
 
 
-        public override T FromConnection<T>(Func<System.Data.SQLite.SQLiteConnection, T> action) =>
-            action(Connection.Result);
+        public override T FromConnection<T>(Func<Microsoft.Data.Sqlite.SqliteConnection, T> action) =>
+            action(Connection);
 
 
-        public override async Task<T> FromConnectionAsync<T>(Func<System.Data.SQLite.SQLiteConnection, Task<T>> action) =>
-            await action(await Connection);
+        public override Task<T> FromConnectionAsync<T>(Func<Microsoft.Data.Sqlite.SqliteConnection, Task<T>> action) =>
+            action(Connection);
 
     }
 

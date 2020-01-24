@@ -54,18 +54,16 @@ namespace Ooorm.Data
 
         public virtual int Execute(TDbConnection connection, string sql, object parameter)
         {
-            using (var command = GetCommand(sql, connection))
-            {
-                command.CommandText = sql;
-                AddParameters(command, sql, parameter);
-                return command.ExecuteNonQuery();
-            }
+            using var command = GetCommand(sql, connection);
+            command.CommandText = sql;
+            AddParameters(command, sql, parameter);
+            return command.ExecuteNonQuery();
         }
 
         protected static readonly object columnCacheLock = new object();
         protected static readonly Dictionary<Type, Dictionary<string, Column>> columnCache = new Dictionary<Type, Dictionary<string, Column>>();
 
-        public static void CheckColumnCache<T>() where T : IDbItem
+        public static void CheckColumnCache<T, TId>() where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
             lock (columnCacheLock)
             {
@@ -74,30 +72,27 @@ namespace Ooorm.Data
             }
         }
 
-        public virtual IEnumerable<T> Read<T>(TDbConnection connection, string sql, object parameter) where T : IDbItem
+        public virtual List<T> Read<T, TId>(TDbConnection connection, string sql, object parameter) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
-            using (var command = GetCommand(sql, connection))
-            {
-                CheckColumnCache<T>();
-                AddParameters(command, sql, parameter);
-                return ExecuteReader<T>(command);
-            }
+            CheckColumnCache<T, TId>();
+            using var command = GetCommand(sql, connection);
+            AddParameters(command, sql, parameter);
+            return ExecuteReader<T, TId>(command);
         }
 
-        protected virtual IEnumerable<T> ExecuteReader<T>(TDbCommand command) where T : IDbItem
+        protected virtual List<T> ExecuteReader<T, TId>(TDbCommand command) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
-            using (var reader = (TDbReader)command.ExecuteReader())
-            {
-                return ParseReader<T>(reader);
-            }
+            using var reader = (TDbReader)command.ExecuteReader();
+            return ParseReader<T, TId>(reader);
         }
 
-        protected virtual List<T> ParseReader<T>(TDbReader reader) where T : IDbItem
+        protected virtual List<T> ParseReader<T, TId>(TDbReader reader) where T : DbItem<T, TId> where TId : struct, IEquatable<TId>
         {
-            var results = new List<T>();
+            var results = reader.RecordsAffected > 0 ? new List<T>(reader.RecordsAffected) : new List<T>();
             while (reader.Read())
             {
                 var row = typeof(T).IsValueType ? default : Activator.CreateInstance<T>();
+                row.IsNew = false;
                 for (int ordinal = 0; ordinal < reader.FieldCount; ordinal++)
                 {
                     var column = columnCache[typeof(T)][reader.GetName(ordinal)];
