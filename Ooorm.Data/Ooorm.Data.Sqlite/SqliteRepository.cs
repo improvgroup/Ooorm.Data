@@ -28,6 +28,7 @@ namespace Ooorm.Data.Sqlite
                 {
                     var result = (await dao.ReadAsync<T, TId>(c, queries.WriteSql(), value)).Single();
                     value.ID = result.ID;
+                    value.IsNew = false;
                     results.Add(result.ID, result);
                 }                
                 

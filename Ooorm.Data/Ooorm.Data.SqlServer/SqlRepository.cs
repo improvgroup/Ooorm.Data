@@ -25,6 +25,7 @@ namespace Ooorm.Data.SqlServer
             {
                 var result = (await dao.ReadAsync<T, TId>(c, queries.WriteSql(), value)).Single();
                 value.ID = result.ID;
+                value.IsNew = false;
                 results.Add(result.ID, result);
             }
             return results;
@@ -57,6 +58,7 @@ namespace Ooorm.Data.SqlServer
             {
                 var result = (await dao.ReadAsync<T, TId>(c, queries.UpdateSql<T>(), value)).Single();
                 value.ID = result.ID;
+                value.IsNew = false;
                 results.Add(result.ID, result);
             }
             return results;

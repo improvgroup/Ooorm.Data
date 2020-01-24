@@ -9,9 +9,9 @@ namespace Ooorm.Data.Sqlite
 
         public override void Dispose() { }
 
-        public override void WithConnection(Action<System.Data.SQLite.SQLiteConnection> action)
+        public override void WithConnection(Action<Microsoft.Data.Sqlite.SqliteConnection> action)
         {
-            using var connection = new System.Data.SQLite.SQLiteConnection(connectionString);
+            using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
             connection.Open();
             OpenConnections++;
             action(connection);
@@ -19,9 +19,9 @@ namespace Ooorm.Data.Sqlite
             OpenConnections--;
         }
 
-        public override async Task WithConnectionAsync(Action<System.Data.SQLite.SQLiteConnection> action)
+        public override async Task WithConnectionAsync(Action<Microsoft.Data.Sqlite.SqliteConnection> action)
         {
-            using var connection = new System.Data.SQLite.SQLiteConnection(connectionString);
+            using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
             await connection.OpenAsync();
             OpenConnections++;
             action(connection);
@@ -29,9 +29,9 @@ namespace Ooorm.Data.Sqlite
             OpenConnections--;
         }
 
-        public override async Task WithConnectionAsync(Func<System.Data.SQLite.SQLiteConnection, Task> action)
+        public override async Task WithConnectionAsync(Func<Microsoft.Data.Sqlite.SqliteConnection, Task> action)
         {
-            using var connection = new System.Data.SQLite.SQLiteConnection(connectionString);
+            using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
             await connection.OpenAsync();
             OpenConnections++;
             await action(connection);
@@ -39,9 +39,9 @@ namespace Ooorm.Data.Sqlite
             OpenConnections--;
         }
 
-        public override T FromConnection<T>(Func<System.Data.SQLite.SQLiteConnection, T> action)
+        public override T FromConnection<T>(Func<Microsoft.Data.Sqlite.SqliteConnection, T> action)
         {
-            using var connection = new System.Data.SQLite.SQLiteConnection(connectionString);
+            using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
             connection.Open();
             OpenConnections++;
             var value = action(connection);
@@ -50,9 +50,9 @@ namespace Ooorm.Data.Sqlite
             return value;
         }
 
-        public override async Task<T> FromConnectionAsync<T>(Func<System.Data.SQLite.SQLiteConnection, Task<T>> action)
+        public override async Task<T> FromConnectionAsync<T>(Func<Microsoft.Data.Sqlite.SqliteConnection, Task<T>> action)
         {
-            using var connection = new System.Data.SQLite.SQLiteConnection(connectionString);
+            using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
             await connection.OpenAsync();
             OpenConnections++;
             var value = await action(connection);

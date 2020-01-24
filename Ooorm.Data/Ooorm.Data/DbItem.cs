@@ -18,28 +18,23 @@ namespace Ooorm.Data
         /// Writes a db item to the specified database and returns the result
         /// </summary>
         public async Task<TSelf> WriteTo(IDatabase db) =>
-            (this.IsNew ? (await db.Write<TSelf, TId>(this)) : (await db.Update<TSelf, TId>(this))).Single().Value;        
-
-        /// <summary>
-        /// Deletes all records from the db that match each non-default field in item
-        /// </summary>
-        /// <returns>Number of deleted records</returns>
-        public Task<int> DeleteMatchingFrom(IDatabase db = null)
-            => this.IsNew ? db.Delete<TSelf, TSelf, TId>(MatchingPredicate(), this) : db.Delete<TSelf, TId>(this);
+            (this.IsNew ? (await db.Write<TSelf, TId>(this)) : (await db.Update<TSelf, TId>(this))).Single().Value;               
 
         /// <summary>
         /// Reads all records from the db that match each non-default field in item
         /// </summary>
         /// <returns>Matching records</returns>
-        public Task<List<TSelf>> ReadMatchingFrom(IDatabase db = null)
-            => db.Read<TSelf, TSelf, TId>(MatchingPredicate(), this);
-
         public static FromOp<List<TSelf>> ReadMatching(Expression<Func<TSelf>> conditions) => throw new NotImplementedException();
 
+
+        /// <summary>
+        /// Deletes all records from the db that match each non-default field in item
+        /// </summary>
+        /// <returns>List of deleted records</returns>
         public static FromOp<List<TSelf>> DeleteMatching(Expression<Func<TSelf>> conditions) => throw new NotImplementedException();
 
         public DbRef<TSelf, TId> In(IDatabase database) =>        
-            IsNew ? new DbRef<TSelf, TId>(ID, () => database) : throw new KeyNotFoundException("Cannot add reference reference to an item without a DB");
+            !IsNew ? new DbRef<TSelf, TId>(ID, () => database) : throw new KeyNotFoundException("Cannot reference an entity that has not been persisted");
         
         public static Task CreateTable(IDatabase database) => database.CreateTable<TSelf, TId>();
 

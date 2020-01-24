@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.IO;
 using Ooorm.Data.Reflection;
 
 namespace Ooorm.Data.Sqlite
 {
-    internal class SqliteDataConsumer : BaseDataConsumer<SQLiteDataReader>
+    internal class SqliteDataConsumer : BaseDataConsumer<SqliteDataReader>
     {
-        public override object ReadColumn(SQLiteDataReader reader, Column column, int index, IExtendableTypeResolver types)
+        public override object ReadColumn(SqliteDataReader reader, Column column, int index, IExtendableTypeResolver types)
         {
             if (reader.IsDBNull(index))
                 return null;
@@ -21,7 +21,7 @@ namespace Ooorm.Data.Sqlite
             }
         }
 
-        protected override bool TryGetStream(SQLiteDataReader reader, int ordinal, out Stream stream)
+        protected override bool TryGetStream(SqliteDataReader reader, int ordinal, out Stream stream)
         {
             try
             {

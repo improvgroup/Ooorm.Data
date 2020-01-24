@@ -1,12 +1,12 @@
 ﻿using Ooorm.Data.ConnectionManagement;
 using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Threading.Tasks;
 
 namespace Ooorm.Data.Sqlite
 {
-    public abstract class SqliteConnection : IConnectionSource<SQLiteConnection>
+    public abstract class SqliteConnection : IConnectionSource<Microsoft.Data.Sqlite.SqliteConnection>
     {
         protected readonly string connectionString;
 
@@ -21,25 +21,25 @@ namespace Ooorm.Data.Sqlite
         {
             get
             {
-                using var connection = new SQLiteConnection(connectionString);
+                using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
                 try
                 {
                     connection.Open();
                     return true;
                 }
-                catch (SQLiteException)
+                catch (SqliteException)
                 {
                     return false;
                 }
             }
         }
 
-        public abstract void WithConnection(Action<System.Data.SQLite.SQLiteConnection> action);
-        public abstract Task WithConnectionAsync(Action<System.Data.SQLite.SQLiteConnection> action);
-        public abstract Task WithConnectionAsync(Func<System.Data.SQLite.SQLiteConnection, Task> action);
+        public abstract void WithConnection(Action<Microsoft.Data.Sqlite.SqliteConnection> action);
+        public abstract Task WithConnectionAsync(Action<Microsoft.Data.Sqlite.SqliteConnection> action);
+        public abstract Task WithConnectionAsync(Func<Microsoft.Data.Sqlite.SqliteConnection, Task> action);
 
-        public abstract T FromConnection<T>(Func<System.Data.SQLite.SQLiteConnection, T> action);
-        public abstract Task<T> FromConnectionAsync<T>(Func<System.Data.SQLite.SQLiteConnection, Task<T>> action);
+        public abstract T FromConnection<T>(Func<Microsoft.Data.Sqlite.SqliteConnection, T> action);
+        public abstract Task<T> FromConnectionAsync<T>(Func<Microsoft.Data.Sqlite.SqliteConnection, Task<T>> action);
 
         public abstract void Dispose();
 
