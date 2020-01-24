@@ -92,6 +92,7 @@ namespace Ooorm.Data
             while (reader.Read())
             {
                 var row = typeof(T).IsValueType ? default : Activator.CreateInstance<T>();
+                row.IsNew = false;
                 for (int ordinal = 0; ordinal < reader.FieldCount; ordinal++)
                 {
                     var column = columnCache[typeof(T)][reader.GetName(ordinal)];

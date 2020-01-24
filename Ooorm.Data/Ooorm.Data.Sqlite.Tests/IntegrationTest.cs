@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using Xunit;
 using System.Linq;
+using Ooorm.Data.Matching;
+using Ooorm.Data.TestUtils;
 
 namespace Ooorm.Data.Sqlite.Tests
 {
@@ -52,10 +54,10 @@ namespace Ooorm.Data.Sqlite.Tests
 
             var widgets = await db.Read<Widget, int>();
             foreach (var ab in widgets.Zip(new Widget[] { widget1, widget2, widget3 }, (a, b) => (a, b)))
-                ab.a.Should().BeEquivalentTo(ab.b);
+                ab.a.Should().BeEquivalentTo(ab.b, PublicOnly.Rule<Widget>());
 
             var widget2_read = await db.Read<Widget, int>(widget2.ID);
-            widget2_read.Should().BeEquivalentTo(widget2);
+            widget2_read.Should().BeEquivalentTo(widget2, PublicOnly.Rule<Widget>());
 
             var doodad1 =
                 await new Doodad
@@ -107,41 +109,89 @@ namespace Ooorm.Data.Sqlite.Tests
         });
 
         [Fact]
-        public Task ItemExtensionsTest() => TestFixture.WithTempDb(async db =>
+        public Task TestReadMatchingWithBasicEquality() => TestFixture.WithTempDb(async db =>
         {
+            // --- assemble ---
             await Widget.CreateTable(db);
             await Doodad.CreateTable(db);
             await WidgetDoodad.CreateTable(db);
 
+            // Create Widgets and Doodads
             var w1 = await new Widget { Value = 100 }.WriteTo(db);
             var w2 = await new Widget { Value = 200 }.WriteTo(db);
-
             await new Doodad { Name = "A", PrimaryWidgetId = w1.In(db) }.WriteTo(db);
             await new Doodad { Name = "B", PrimaryWidgetId = w2.In(db) }.WriteTo(db);
             await new Doodad { Name = "C", PrimaryWidgetId = w2.In(db) }.WriteTo(db);
 
-
-            var a = (await new Doodad { Name = "A" }.ReadMatchingFrom(db)).Single();
+            // Read all Doodads with Name "A"
+            var matchingA = await Doodad.ReadMatching(() => new Doodad { Name = "A" }).From(db);
+            var a = matchingA.Single();
 
             a.Name.Should().Be("A");
-            var w1froma = await a.PrimaryWidgetId.Get();
-            w1froma.Value.Should().Be(100);
+            var w1FromA = await a.PrimaryWidgetId.Get();
+            w1FromA.Value.Should().Be(100);
 
-            var all = await new Doodad().ReadMatchingFrom(db);
+            // Read all Doodads matching "no constraints"
+            var all = await Doodad.ReadMatching(() => new Doodad { }).From(db);
+            all.Should().HaveCount(3);
 
-            all.Count().Should().Be(3);
+            // Read all Doodads with PrimaryWidget w2
+            var doodadsWithWidget2 = Doodad.ReadMatching(() => new Doodad { PrimaryWidgetId = w2.In(db) });
+            var w2Doodads = await doodadsWithWidget2.From(db);
 
-            var w2doodads = await new Doodad { PrimaryWidgetId = w2.In(db) }.ReadMatchingFrom(db);
+            w2Doodads.Should().Contain(d => d.Name == "B");
+            w2Doodads.Should().Contain(d => d.Name == "C");
+            w2Doodads.Should().HaveCount(2);
 
-            (w2doodads.Any(d => d.Name == "B") && w2doodads.Any(d => d.Name == "C") && w2doodads.Count() == 2)
-                .Should().BeTrue();
+            // Delete all Doodads with Name "B"
+            await Doodad.DeleteMatching(() => new Doodad { Name = "B" }).From(db);
 
-            await new Doodad { Name = "B" }.DeleteMatchingFrom(db);
+            // Refresh doodads 2 list after change
+            w2Doodads = await doodadsWithWidget2.From(db);
 
-            w2doodads = await new Doodad { PrimaryWidgetId = w2.In(db) }.ReadMatchingFrom(db);
+            // After delete only doodad "C" has PrimaryWidget w2
+            w2Doodads.Should().ContainSingle(d => d.Name == "C");
+            w2Doodads.Should().HaveCount(1);
+        });
 
-            (w2doodads.Any(d => d.Name == "C") && w2doodads.Count() == 1)
-                .Should().BeTrue();
-        });        
+        [Fact]
+        public Task TestReadMatchingWithComparisons() => TestFixture.WithTempDb(async db =>
+        {
+            // --- assemble ---
+            await Widget.CreateTable(db);
+            var w1 = await new Widget { Value = 100 }.WriteTo(db);
+            var w2 = await new Widget { Value = 200 }.WriteTo(db);
+            var w3 = await new Widget { Value = 300 }.WriteTo(db);
+
+            // --- act ---
+            var readLessThan200 = Widget.ReadMatching(() => new Widget { Value = (LessThan<int>) 200 });
+            var lt200 = await readLessThan200.From(db);
+            // --- assert ---
+            lt200.Should().ContainSingle(w => w.Value == 100);
+            lt200.Should().HaveCount(1);
+
+            // --- act ---
+            var readLessThanEqualTo200 = Widget.ReadMatching(() => new Widget { Value = (NotGreaterThan<int>) 200 });
+            var lte200 = await readLessThanEqualTo200.From(db);
+            // --- assert ---
+            lte200.Should().Contain(w => w.Value == 100);
+            lte200.Should().Contain(w => w.Value == 200);
+            lte200.Should().HaveCount(2);
+
+            // --- act ---
+            var readGreaterThan200 = Widget.ReadMatching(() => new Widget { Value = (GreaterThan<int>) 200 });
+            var gt200 = await readLessThanEqualTo200.From(db);
+            // --- assert ---
+            gt200.Should().ContainSingle(w => w.Value == 300);
+            gt200.Should().HaveCount(1);
+
+            // --- act ---
+            var readGreaterThanEqualTo200 = Widget.ReadMatching(() => new Widget { Value = (NotLessThan<int>) 200 });
+            var gte200 = await readLessThanEqualTo200.From(db);
+            // --- assert ---
+            gte200.Should().Contain(w => w.Value == 200);
+            gte200.Should().Contain(w => w.Value == 300);
+            gte200.Should().HaveCount(2);
+        });
     }
 }

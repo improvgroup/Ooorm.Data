@@ -16,7 +16,7 @@ namespace Ooorm.Data.SqlServer.Tests
 
         public class Widget : DbItem<Widget, int>
         {
-            public int Value { get; set; }
+            public int Values { get; set; }
         }
 
         public class WidgetDoodad : DbItem<WidgetDoodad, long>
@@ -33,16 +33,21 @@ namespace Ooorm.Data.SqlServer.Tests
         [Fact]
         public Task CrudTest() => TestFixture.WithTempDb(async db =>
         {
+            // Create tables in temp database 'db'
             await Widget.CreateTable(db);
             await Doodad.CreateTable(db);
             await WidgetDoodad.CreateTable(db);
 
-            var widget1 = new Widget { Value = 1 };
-            var widget2 = new Widget { Value = 2 };
-            var widget3 = new Widget { Value = 4 };
+            // Instantiate widget entities
+            var widget1 = new Widget { Values = 1 };
+            var widget2 = new Widget { Values = 2 };
+            var widget3 = new Widget { Values = 4 };
 
+            // Write widget entities to database
             var results = await db.Write<Widget, int>(widget1, widget2, widget3);
 
+            // Assert that Widget IDs are set to what the database assigned
+            // and that the write method returns the correct items
             results.Count.Should().Be(3);
             results.Keys.Should().Contain(new int[] { widget1.ID, widget2.ID, widget3.ID });
             widget1.ID.Should().BeGreaterThan(0);
@@ -51,26 +56,29 @@ namespace Ooorm.Data.SqlServer.Tests
             widget1.ID.Should().NotBe(widget2.ID);
             widget2.ID.Should().NotBe(widget3.ID);
 
+            // Read all widgets from db
             var widgets = await db.Read<Widget, int>();
+
+            // Assert that exactly the right widgets were returned, in the order they were written
             foreach (var ab in widgets.Zip(new Widget[] { widget1, widget2, widget3 }, (a, b) => (a, b)))
                 ab.a.Should().BeEquivalentTo(ab.b);
 
+            // Reading by ID should return the correct item
             var widget2_read = await db.Read<Widget, int>(widget2.ID);
             widget2_read.Should().BeEquivalentTo(widget2);
 
-            var doodad1 =
-                await new Doodad
-                {
-                    Name = "First",
-                    PrimaryWidgetId = widget1.In(db)
-                }.WriteTo(db);
+            // Create 'Doodads' and 'WidgetDoodads'
+            var doodad1 = await new Doodad
+            {
+                Name = "First",
+                PrimaryWidgetId = widget1.In(db) // '.In' method returns a DbRef to an entity
+            }.WriteTo(db);
 
-            var doodad2 =
-                await new Doodad
-                {
-                    Name = "Second",
-                    PrimaryWidgetId = widget3.In(db)
-                }.WriteTo(db);
+            var doodad2 = await new Doodad
+            {
+                Name = "Second",
+                PrimaryWidgetId = widget3.In(db)
+            }.WriteTo(db);
 
             await new WidgetDoodad
             {
@@ -93,7 +101,8 @@ namespace Ooorm.Data.SqlServer.Tests
                 Active = true,
             }.WriteTo(db);
 
-            var linksToWidget2 = await WidgetDoodad.Read<long?>((r, p) => r.WidgetId == p).With(widget2.ID).From(db);
+            // Read WidgetDoodads where "row WidgetId = parameter" with parameter of widget2.ID from the database 'db'
+            var linksToWidget2 = await WidgetDoodad.Read<long?>((row, param) => row.WidgetId == param).With(widget2.ID).From(db);
             linksToWidget2.Count.Should().Be(2);
 
             var first = await db.Dereference(linksToWidget2.First().DoodadId);
@@ -114,8 +123,8 @@ namespace Ooorm.Data.SqlServer.Tests
             await Doodad.CreateTable(db);
             await WidgetDoodad.CreateTable(db);
 
-            var w1 = await new Widget { Value = 100 }.WriteTo(db);
-            var w2 = await new Widget { Value = 200 }.WriteTo(db);
+            var w1 = await new Widget { Values = 100 }.WriteTo(db);
+            var w2 = await new Widget { Values = 200 }.WriteTo(db);
 
             await new Doodad { Name = "A", PrimaryWidgetId = w1.In(db) }.WriteTo(db);
             await new Doodad { Name = "B", PrimaryWidgetId = w2.In(db) }.WriteTo(db);
@@ -126,11 +135,11 @@ namespace Ooorm.Data.SqlServer.Tests
 
             a.Name.Should().Be("A");
             var w1froma = await a.PrimaryWidgetId.Get();
-            w1froma.Value.Should().Be(100);
+            w1froma.Values.Should().Be(100);
 
             var all = await new Doodad().ReadMatchingFrom(db);
 
-            all.Count().Should().Be(3);
+            all.Should().HaveCount(3);
 
             var w2doodads = await new Doodad { PrimaryWidgetId = w2.In(db) }.ReadMatchingFrom(db);
 

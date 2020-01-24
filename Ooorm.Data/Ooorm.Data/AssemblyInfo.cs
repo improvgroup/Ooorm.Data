@@ -2,4 +2,3 @@
 using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Ooorm.Data.Sqlite")]
 [assembly: InternalsVisibleTo("Ooorm.Data.SqlServer")]
-[assembly: InternalsVisibleTo("Ooorm.Data.SqlLite")]

@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.Sqlite", "Ooorm.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.Sqlite.Tests", "Ooorm.Data.Sqlite.Tests\Ooorm.Data.Sqlite.Tests.csproj", "{2C00BE77-F0AB-43D0-954B-711CFE46864C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.Tests", "Ooorm.Data.Tests\Ooorm.Data.Tests.csproj", "{19B71181-5893-48BF-BDDD-7CAB13E50228}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ooorm.Data.Tests", "Ooorm.Data.Tests\Ooorm.Data.Tests.csproj", "{19B71181-5893-48BF-BDDD-7CAB13E50228}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooorm.Data.TestUtils", "Ooorm.Data.TestUtils\Ooorm.Data.TestUtils.csproj", "{F636EAA0-CD14-47AA-B8FF-C3598D2CAE16}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,10 @@ Global
 		{19B71181-5893-48BF-BDDD-7CAB13E50228}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19B71181-5893-48BF-BDDD-7CAB13E50228}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19B71181-5893-48BF-BDDD-7CAB13E50228}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F636EAA0-CD14-47AA-B8FF-C3598D2CAE16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F636EAA0-CD14-47AA-B8FF-C3598D2CAE16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F636EAA0-CD14-47AA-B8FF-C3598D2CAE16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F636EAA0-CD14-47AA-B8FF-C3598D2CAE16}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
