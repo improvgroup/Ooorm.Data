@@ -191,10 +191,14 @@ namespace Ooorm.Data
 
             void parseConvert(UnaryExpression unary)
             {
-                if (unary.NodeType == ExpressionType.Convert && unary.Method.ToString().Contains("Explicit"))
+                if (unary.NodeType == ExpressionType.Convert && (unary.Method?.ToString().Contains("Explicit") ?? false))
                 {
-                    if (unary.Type.BaseType == typeof(ExpressionDecorator<,>))
-                        builder.Append(" ").Append((string)unary.Type.GetMethod("Operand").Invoke(null, new object[0])).Append(" ");
+                    if (unary.Type.Name == typeof(ExpressionDecorator<,>).Name)
+                    {
+                        var operandProperty = unary.Type.GenericTypeArguments[0].GetProperty(nameof(LessThan<int>.Operand), BindingFlags.Static | BindingFlags.Public);
+                        var operand = (string)operandProperty.GetValue(null, new object[0]);
+                        builder.Append(" ").Append(operand).Append(" ");
+                    }
                 }
                 if (unary.Operand is UnaryExpression inner)
                     parseConvert(inner);

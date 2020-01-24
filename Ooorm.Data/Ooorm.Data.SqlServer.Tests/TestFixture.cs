@@ -10,9 +10,11 @@ namespace Ooorm.Data.SqlServer.Tests
 
         public static readonly string Server = "localhost";
 
+        public static readonly string ContainerSaPassword = "TransientTestDb!";
+
         // Recommended method of setting up a test instance;
         // https://docs.microsoft.com/en-us/sql/linux/quickstart-install-connect-docker?view=sql-server-linux-2017
-        public static string ConnectionString(string db) => $"Server=localhost;Database={db};User Id=SA;Password=TransientTestDb!;";
+        public static string ConnectionString(string db) => $"Server={Server};Database={db};User Id=SA;Password={ContainerSaPassword};";
 
         public static async Task<TempMssqlDb> TempDb([CallerMemberName] string name = null)
         {

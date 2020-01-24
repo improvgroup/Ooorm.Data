@@ -11,31 +11,31 @@ namespace Ooorm.Data.Matching
 
     public class Like : ExpressionDecorator<Like, string>
     {
-        public static string Operand() => "LIKE";
+        public static string Operand => "LIKE";
     }
 
     public class GreaterThan<T> : ExpressionDecorator<GreaterThan<T>, T> where T : IComparable<T>
     {
-        public static string Operand() => ">";        
+        public static string Operand => ">";        
     }
 
     public class LessThan<T> : ExpressionDecorator<LessThan<T>, T> where T : IComparable<T>
     {
-        public static string Operand() => "<";
+        public static string Operand => "<";
     }
 
     public class NotGreaterThan<T> : ExpressionDecorator<NotGreaterThan<T>, T> where T : IComparable<T>
     {
-        public static string Operand() => "<=";
+        public static string Operand => "<=";
     }
 
     public class NotLessThan<T> : ExpressionDecorator<NotLessThan<T>, T> where T : IComparable<T>
     {
-        public static string Operand() => ">=";
+        public static string Operand => ">=";
     }
 
     public class Not<T> : ExpressionDecorator<Not<T>, T>
     {
-        public static string Operand() => "NOT";
+        public static string Operand => "NOT";
     }
 }

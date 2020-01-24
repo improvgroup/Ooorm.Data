@@ -190,14 +190,14 @@ namespace Ooorm.Data.Sqlite.Tests
 
             // --- act ---
             var readGreaterThan200 = Widget.ReadMatching(() => new Widget { Value = (GreaterThan<int>) 200 });
-            var gt200 = await readLessThanEqualTo200.From(temp.db);
+            var gt200 = await readGreaterThan200.From(temp.db);
             // --- assert ---
             gt200.Should().ContainSingle(w => w.Value == 300);
             gt200.Should().HaveCount(1);
 
             // --- act ---
             var readGreaterThanEqualTo200 = Widget.ReadMatching(() => new Widget { Value = (NotLessThan<int>) 200 });
-            var gte200 = await readLessThanEqualTo200.From(temp.db);
+            var gte200 = await readGreaterThanEqualTo200.From(temp.db);
             // --- assert ---
             gte200.Should().Contain(w => w.Value == 200);
             gte200.Should().Contain(w => w.Value == 300);
