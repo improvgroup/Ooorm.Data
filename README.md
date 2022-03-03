@@ -1,3 +1,6 @@
+# DO NOT USE THIS. ARCHIVING ONLY.
+
+
 # Ooorm.Data
 
 Work in progress relational DB access library for C#.
